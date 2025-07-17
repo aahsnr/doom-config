@@ -6,39 +6,37 @@
 
 - [x] __Replace lsp-mode with eglot & eglot-booster__
 
+- [ ] __Auto Format all files using alphaelia__
+
 - [x] __Replace dap-mode with dape__
 
 - [x] __Replace flycheck with flymake__
 
-- [ ] __Add consult-flymake__
+- [x] __Add consult-flymake__
 
-- [ ] __Fix dired/dirvish__
+- [x] __Fix dired/dirvish__
 
-- [x] __Setup global word-wrap__
+- [ ] __Setup global word-wrap__
 
 - [x] __Evil__
 
 - [x] __Buffer Management with ibuffer and bufler__
 
-- [ ] __Project__ [Integrate project with completion system and ibuffer and perspective.el]
-
-- [x] __Completion System__ [ Further add dabbrev and integrate the completion system with org-src-code blocks. Check when coding in jupyter ]
-
 - [ ] __Keybindings__
 
-- [ ] __Delimiters with smartparens and delimiters__
+- [x] __Delimiters with smartparens and delimiters__
 
-- [x] __Treemacs__
+- [ ] __Treemacs__
 
 - [ ] __Git with treemacs__
 
-- [x] __Treemacs toggle__
+- [ ] __Treemacs toggle__
 
-- [x] __Dired__
+- [ ] __Dired__
 
 - [ ] __PDF Tools__
 
-- [x] __Winner-Mode__
+- [ ] __Winner-Mode__
 
 - [x] __Which-Key__
 
@@ -50,17 +48,11 @@
 
 - [x] __Recent Files__
 
-- [x] __Savehist__
+- [ ] __Savehist__
 
 - [ ] __Window Management__
 
-- [x] __Replace Projectile with Project.el__
-
-- [x] __Replace Bufler with ibuffer__ [Integrate ibuffer with perspective.el and project.el and possibly completion system]
-
-- [x] __Perspective__ [Integrate with ibuffer, project.el and possibly completion system]
-
-Write comprehensive perspective.el configuration from https://github.com/nex3/perspective-el for emacs 30 using use-package format, and keybindings follow spacemacs-like keybindings using SPC as leader. The persective.el configuration must have the following integrations: ibuffer, project.el, treemacs and vertico, assuming that the user has setup configurations for the latter 4 packages. Do not introduce errors and redundant configurations.
+- [ ] __Make ibuffer look and behave like bufler__ 
 
 - [ ] __Avy: Complete the configuration from avy.md__ 
 
@@ -110,9 +102,9 @@ Make sure to search the web before writing anything. Do not introduce errors. An
 
 - [x] __Colorful Mode__
 
-- [ ] __Rainbow-Delimiters__
+- [x] __Rainbow-Delimiters__
 
-- [ ] __Smartparens__
+- [x] __Smartparens__
 
 - [ ] __Setup anzu and evil-anzu__
 

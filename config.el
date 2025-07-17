@@ -65,6 +65,62 @@
       "j" #'evil-next-visual-line
       "k" #'evil-previous-visual-line)
 
+(use-package! savehist
+  :init
+  (setq savehist-file (concat doom-cache-dir "savehist"))
+  :config
+  (setq savehist-save-minibuffer-history t
+        savehist-autosave-interval nil ; save on kill only
+        savehist-additional-variables
+        '(kill-ring                    ; persist clipboard
+          mark-ring global-mark-ring   ; persist marks
+          search-ring regexp-search-ring ; persist searches
+          extended-command-history     ; persist M-x history
+          query-replace-history        ; persist query-replace history
+          file-name-history           ; persist file name history
+          minibuffer-history))        ; persist general minibuffer history
+
+  ;; Optimize savehist file size by removing text properties
+  (add-hook 'savehist-save-hook
+    (defun doom-unpropertize-kill-ring-h ()
+      "Remove text properties from `kill-ring' for a smaller savehist file."
+      (setq kill-ring (cl-loop for item in kill-ring
+                               if (stringp item)
+                               collect (substring-no-properties item)
+                               else if item collect it))))
+
+  ;; Enable savehist mode
+  (savehist-mode 1))
+
+(setq vterm-kill-buffer-on-exit t)
+
+(defun +my/vterm-prevent-kill-on-frame-close-query ()
+  "Prevent killing vterm buffers when closing a frame in daemon mode."
+  (if (and (daemonp) (eq major-mode 'vterm-mode))
+      ;; If in daemon mode and it's a vterm buffer, prevent the kill query
+      ;; and keep the buffer alive in the daemon.
+      nil
+    ;; Otherwise, allow default kill query behavior.
+    t))
+
+;; Add the function to the `kill-buffer-query-functions` hook.
+(add-hook 'kill-buffer-query-functions #'+my/vterm-prevent-kill-on-frame-close-query)
+
+(defun +my/vterm-force-kill-current-buffer ()
+  "Force kill the current vterm buffer without prompting."
+  (interactive)
+  ;; Ensure the current buffer is a vterm buffer before attempting to kill it.
+  (when (eq major-mode 'vterm-mode)
+    ;; The 't' as the second argument to `kill-buffer` forces the kill,
+    ;; bypassing any prompts about running processes or unsaved changes.
+    (kill-buffer (current-buffer) t)
+    (message "Vterm buffer killed forcefully.")))
+
+(map! :leader
+      :desc "toggle vterm"  "v t" #'+vterm/toggle
+      :desc "open vterm buffer" "v T" #'+vterm/here
+      :desc "kill vterm" "v k" #'+my/vterm-force-kill-current-buffer)
+
 (after! vertico
   (setq vertico-count 10
         vertico-cycle t))
