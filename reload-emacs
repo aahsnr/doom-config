@@ -1,0 +1,4 @@
+#!/bin/bash
+doom sync
+killall emacs
+emacs --daemon
