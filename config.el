@@ -6,218 +6,95 @@
 ;; Prefer y-or-n over yes-or-no
 (defalias 'yes-or-no-p 'y-or-n-p)
 
-(map! :leader
-      :desc "Open like spacemacs" "SPC" #'execute-extended-command)
+(setq doom-theme 'catppuccin)
 
-;; Enhanced Vertico configuration with proper even split layout
-(after! vertico
-  (setq vertico-count 10
-        vertico-cycle t
-        vertico-resize nil
-        vertico-scroll-margin 2))
+(setq doom-font (font-spec :family "JetBrainsMono Nerd Font" :size 14.5 :weight 'medium)
+      doom-variable-pitch-font (font-spec :family "JetBrainsMono Nerd Font" :size 14.5)
+      doom-big-font (font-spec :family "JetBrainsMono Nerd Font" :size 26.0))
+(setq doom-unicode-font (font-spec :family "JetBrainsMono Nerd Font" :size 14.5))
 
-(add-hook! 'org-babel-pre-tangle-hook
-  (when (file-directory-p (expand-file-name "snippets" doom-user-dir))
-    (require 'async)
-    (async-start
-     (lambda ()
-       (delete-directory (expand-file-name "snippets" doom-user-dir) t (not (null delete-by-moving-to-trash))))
-     (lambda (result)
-       (print! "Delete snippets dir got: " result)))))
-
-(add-hook! 'doom-after-reload-hook (doom-load-envvars-file (expand-file-name "env" doom-local-dir) t))
-
-(defun bury-compile-buffer-if-successful (buffer string)
-  "Bury a compilation buffer if succeeded without warnings "
-  (when (and (eq major-mode 'comint-mode)
-             (string-match "finished" string)
-             (not
-              (with-current-buffer buffer
-                (search-forward "warning" nil t))))
-    (run-with-timer 1 nil
-                    (lambda (buf)
-                      (let ((window (get-buffer-window buf)))
-                        (when (and (window-live-p window)
-                                   (eq buf (window-buffer window)))
-                          (delete-window window))))
-                    buffer)))
-
-(add-hook 'compilation-finish-functions #'bury-compile-buffer-if-successful)
-
-(use-package! embark-vc
-  :after embark)
-
-(add-to-list 'default-frame-alist '(inhibit-double-buffering . t))
-
-(after! marginalia
-  (setq marginalia-censor-variables nil)
-
-  (defadvice! +marginalia--anotate-local-file-colorful (cand)
-    "Just a more colourful version of `marginalia--anotate-local-file'."
-    :override #'marginalia--annotate-local-file
-    (when-let (attrs (file-attributes (substitute-in-file-name
-                                       (marginalia--full-candidate cand))
-                                      'integer))
-      (marginalia--fields
-       ((marginalia--file-owner attrs)
-        :width 12 :face 'marginalia-file-owner)
-       ((marginalia--file-modes attrs))
-       ((+marginalia-file-size-colorful (file-attribute-size attrs))
-        :width 7)
-       ((+marginalia--time-colorful (file-attribute-modification-time attrs))
-        :width 12))))
-
-  (defun +marginalia--time-colorful (time)
-    (let* ((seconds (float-time (time-subtract (current-time) time)))
-           (color (doom-blend
-                   (face-attribute 'marginalia-date :foreground nil t)
-                   (face-attribute 'marginalia-documentation :foreground nil t)
-                   (/ 1.0 (log (+ 3 (/ (+ 1 seconds) 345600.0)))))))
-      ;; 1 - log(3 + 1/(days + 1)) % grey
-      (propertize (marginalia--time time) 'face (list :foreground color))))
-
-  (defun +marginalia-file-size-colorful (size)
-    (let* ((size-index (/ (log10 (+ 1 size)) 7.0))
-           (color (if (< size-index 10000000) ; 10m
-                      (doom-blend 'orange 'green size-index)
-                    (doom-blend 'red 'orange (- size-index 1)))))
-      (propertize (file-size-human-readable size) 'face (list :foreground color)))))
-
-(setq yas-triggers-in-field t)
-
-;; Doom Emacs Font Configuration
-;; Place this in your config.el file
-
-;; Set the primary fonts using Doom's built-in variables
-;; Use floating point size for better DPI scaling across monitors
-(setq doom-font (font-spec :family "JetBrainsMono Nerd Font"
-                           :size 14.5
-                           :weight 'medium)
-      doom-variable-pitch-font (font-spec :family "JetBrainsMono Nerd Font"
-                                          :size 14.5
-                                          :weight 'medium)
-      ;; Optional: Set a big font for presentations/demos
-      doom-big-font (font-spec :family "JetBrainsMono Nerd Font"
-                               :size 26.0
-                               :weight 'medium))
-
-;; Set unicode font for better unicode character support
-;; This helps with icons and special characters
-(setq doom-unicode-font (font-spec :family "JetBrainsMono Nerd Font"
-                                   :size 14.5))
-
-;; Fix for doom-modeline icons not showing in daemon mode
-;; doom-modeline disables icons by default when running as daemon
-
-(defun +my/enable-doom-modeline-icons (_frame)
-  "Enable doom-modeline icons when creating new frames in daemon mode."
-  (setq doom-modeline-icon t))
-
-;; Enable icons for daemon mode - this fixes the missing nerd icons issue
-(if (daemonp)
-    (add-hook 'after-make-frame-functions #'+my/enable-doom-modeline-icons)
-  (setq doom-modeline-icon t))
-
-;; Use after-setting-font-hook for font-related customizations
-;; This ensures the customizations apply after fonts are loaded
 (add-hook! 'doom-after-init-hook
   (defun +my/setup-font-faces ()
     "Configure font faces after Doom initialization."
-    ;; Makes commented text and keywords italics
-    ;; Your font must have an italic face available
     (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
     (set-face-attribute 'font-lock-keyword-face nil :slant 'italic)))
 
-;; Set line spacing - this works the same way in Doom
-(setq-default line-spacing 0.00)
+;; Line Spacing
+(setq-default line-spacing 0.002)
 
-;; Catppuccin theme configuration
-(use-package! catppuccin-theme
-  :init
-  ;; Set the flavor to mocha (default is already mocha, but being explicit)
-  (setq catppuccin-flavor 'mocha)
-  :config
-  ;; Load the theme properly for Doom Emacs
-  ;; Important: Use this specific method for Doom Emacs to avoid artifacts
-  (load-theme 'catppuccin t t)
-
-  ;; Optional: Customize specific aspects of the theme
-  ;; (setq catppuccin-enlarge-headings t)
-  ;; (setq catppuccin-height-title1 1.5)
-  ;; (setq catppuccin-height-title2 1.3)
-  ;; (setq catppuccin-height-title3 1.1)
-
-  ;; Apply the theme
-  (catppuccin-reload))
-
-;; Set as the default Doom theme
-(setq doom-theme 'catppuccin)
-
-(setq display-line-numbers-type 'absolute)
-
-(dolist (mode '(org-mode-hook
-                term-mode-hook
-                shell-mode-hook
-                eshell-mode-hook))
-  (add-hook mode (lambda () (display-line-numbers-mode 0))))
-
-(setq mode-line-right-align-edge 'right-fringe)
-(after! doom-modeline
-  (setq doom-modeline-height 28
-	doom-modeline-bar-width 3
-	doom-modeline-icon (display-graphic-p)
-	doom-modeline-major-mode-icon t
-	doom-modeline-major-mode-color-icon t
-	doom-modeline-buffer-file-name-style 'truncate-upto-project
-	doom-modeline-buffer-state-icon t
-	doom-modeline-buffer-modification-icon t
-	doom-modeline-buffer-file-name-style 'relative-from-project
-	doom-modeline-minor-modes nil
-	doom-modeline-enable-word-count nil
-	doom-modeline-buffer-encoding t
-	doom-modeline-indent-info nil
-	doom-modeline-project-detection 'auto
-	doom-modeline-lsp t
-	doom-modeline-checker-simple-format t
-	doom-modeline-vcs-max-length 12
-	doom-modeline-env-version t
-	doom-modeline-irc-stylize 'identity
-	doom-modeline-github-timer nil
-	doom-modeline-gnus-timer nil))
+;; Line Numbers
+(add-hook! '(org-mode-hook term-mode-hook shell-mode-hook eshell-mode-hook)
+           #'(lambda () (display-line-numbers-mode -1)))
 
 (setq +doom-dashboard-banner-padding '(0 . 2))
 (setq +doom-dashboard-banner-file "~/.config/doom/banner.png")
 ;;(remove-hook '+doom-dashboard-functions #'doom-dashboard-widget-shortmenu)
 ;; (remove-hook '+doom-dashboard-functions #'doom-dashboard-widget-footer)
 
-(use-package! info-colors
-  :after info
-  :commands (info-colors-fontify-node)
-  :hook (Info-selection . info-colors-fontify-node))
+(after! which-key
+  (setq which-key-popup-type 'minibuffer))
 
-(use-package! colorful-mode
+(setq evil-split-window-below t
+      evil-vsplit-window-right t
+      evil-want-fine-undo t)
+
+(setq evil-normal-state-cursor '(box "#fe8019")
+      evil-insert-state-cursor '(bar "#fb4934")
+      evil-visual-state-cursor '(hollow "#fe8019"))
+
+(use-package! evil-escape
+  :hook (evil-mode . evil-escape-mode)
   :custom
-  (colorful-use-prefix t)
-  (colorful-only-strings 'only-prog)
-  (css-fontify-colors nil)
+  (evil-escape-key-sequence "jk")
+  (evil-escape-delay 0.2)
+  (evil-escape-excluded-modes '(dired-mode)))
+
+(use-package! evil-goggles
+  :hook (evil-mode . evil-goggles-mode)
+  :custom (evil-goggles-duration 0.1))
+
+(map! :map evil-normal-state-map
+      "j" #'evil-next-visual-line
+      "k" #'evil-previous-visual-line)
+
+(after! vertico
+  (setq vertico-count 10
+        vertico-cycle t))
+
+(after! consult
+  ;; Use fd and rg for faster searching, from vanilla config
+  (setq consult-find-args "fd --hidden --strip-cwd --type f --color=never"
+        consult-ripgrep-args "rg --null --line-buffered --color=never --smart-case --no-heading --line-number --hidden --glob '!.git/'"))
+
+(use-package! consult-yasnippet
+  :after (consult yasnippet)
   :config
-  (global-colorful-mode t)
-  (add-to-list 'global-colorful-modes 'helpful-mode))
+  (setq consult-yasnippet-category-icon-alist
+        '((t . "»")
+          ("Emacs Lisp" . "λ")
+          ("Text" . "¶")
+          ("Org" . "★")
+          ("Python" . "🐍"))))
 
-(use-package! rainbow-identifiers
-  ;; :hook (php-mode . rainbow-identifiers-mode)
-  ;; :hook (org-mode . (lambda () (rainbow-identifiers-mode -1)))
-  ;; :hook (web-mode . (lambda () (rainbow-identifiers-mode -1)))
-  :config
-  (setq rainbow-identifiers-faces-to-override
-        '(php-variable-name
-          php-property-name
-          php-variable-sigil
-          web-mode-variable-name-face)))
+(map! :leader
+      :desc "Search snippets" "s y" #'consult-yasnippet)
 
-(setq org-directory "~/org")
+(after! dired
+  ;; Omit files like in the vanilla config
+  (setq dired-omit-files "^\\.[^.]\\|^#\\|^\\.$\\|^\\.\\.$\\|\\.pyc$\\|\\.o$")
+  (setq dired-listing-switches "-agho --group-directories-first"))
 
-(defun elken/org-font-setup ()
+(after! dirvish
+  ;; Set quick access directories from vanilla config
+  (setq dirvish-quick-access-entries
+        '(("h" "~/" "Home")
+          ("d" "~/Downloads/" "Downloads")
+          ("D" "~/Documents/" "Documents")
+          ("p" "~/Projects/" "Projects")
+          ("/" "/" "Root")))
+  (setq dirvish-attributes '(nerd-icons file-time file-size collapse subtree-state vc-state)))
+
+(defun ar/org-font-setup ()
   ;; Set faces for heading levels
   (dolist (face '((org-level-1 . 1.2)
                   (org-level-2 . 1.1)
@@ -239,83 +116,241 @@
   (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
   (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
 
-(defun elken/org-setup-hook ()
+(setq org-directory "~/org"
+      org-ellipsis " "
+      org-startup-with-inline-images t
+      org-image-actual-width 600
+      org-archive-location "archive/Archive_%s::"
+      org-auto-align-tags nil) ; org-modern handles this better
+
+(defun ar/org-setup-hook ()
   "Modes to enable on org-mode start"
   (org-indent-mode)
-  (visual-line-mode 1)
+  (visual-line-mode)
   (+org-pretty-mode)
-  (elken/org-font-setup))
+  (ar/org-font-setup))
 
-(add-hook! org-mode #'elken/org-setup-hook)
+(add-hook! org-mode #'ar/org-setup-hook)
 
-(after! evil-org
-  (remove-hook 'org-tab-first-hook #'+org-cycle-only-current-subtree-h))
-
-(after! org
-  (setq org-ellipsis " "))
+;; (after! evil-org
+;;   (remove-hook 'org-tab-first-hook #'+org-cycle-only-current-subtree-h))
 
 (use-package! org-tempo
   :after org
   :config
+  (setq org-src-window-setup 'split-window-below
+        org-src-fontify-natively t
+        org-src-tab-acts-natively t)
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("py" . "src python"))
   (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp")))
 
-(use-package! org-modern
-  :after org
-  :config
-  ;; Custom headline bullets - this is the main customization
-  (setq org-modern-star
-        '("◉" "○" "◈" "◇" "◆" "▷"))
+(use-package! visual-fill-column
+  :hook (org-mode . visual-fill-column-mode)
+  :custom
+  (visual-fill-column-width 100)
+  (visual-fill-column-center-text t))
 
-  ;; Custom list bullets
-  ;; (setq org-modern-list
-  ;;       '((43 . "➤")   ; +
-  ;;         (45 . "–")   ; -
-  ;;         (42 . "•"))) ; *
-
-  ;; Optional: Customize specific elements if needed
-  ;; Uncomment and modify as desired
-
-  (setq org-modern-table-vertical 1
-        org-modern-table-horizontal 0.1)
-
-  (setq org-modern-block-name
-        '(("src" "»" "«")
-          ("example" "»–" "–«")
-          ("quote" "❝" "❞")))
-
-  ;; Simple tag styling that works with any theme
-  ;; (setq org-modern-tag-faces
-  ;;       '(("work" :inverse-video t :weight bold)
-  ;;         ("home" :inverse-video t :weight bold)
-  ;;         ("project" :inverse-video t :weight bold)))
-  )
+(setf (alist-get 'height +org-capture-frame-parameters) 15)
 
 (after! org
   (setq org-todo-keywords
-        '((sequence "TODO(t)" "INPROG(i)" "PROJ(p)" "STORY(s)" "WAIT(w@/!)" "|" "DONE(d@/!)" "KILL(k@/!)")
-          (sequence "[ ](T)" "[-](S)" "[?](W)" "|" "[X](D)"))
-        ;; The triggers break down to the following rules:
+        '((sequence "☛ TODO(t)" "⚡ NEXT(n)" "🔄 PROG(p)" "⏳ WAIT(w@/!)" "|" "✅ DONE(d!)" "❌ CANCELLED(c@)")
+          (sequence "🎯 GOAL(G)" "🚀 ACTIVE(A)" "⏸ PAUSED(x)" "|" "🏆 ACHIEVED(a)" "🚫 DROPPED(X)")))
+  (setq org-todo-keyword-faces
+        '(("☛ TODO" . (:foreground "#fb4934" :weight bold))
+          ("⚡ NEXT" . (:foreground "#fabd2f" :weight bold))
+          ("🔄 PROG" . (:foreground "#83a598" :weight bold))
+          ("⏳ WAIT" . (:foreground "#d3869b" :weight bold))
+          ("✅ DONE" . (:foreground "#b8bb26" :weight bold))
+          ("❌ CANCELLED" . (:foreground "#928374" :weight bold))
+          ("🎯 GOAL" . (:foreground "#b16286" :weight bold))
+          ("🚀 ACTIVE" . (:foreground "#d79921" :weight bold))
+          ("⏸ PAUSED" . (:foreground "#7c6f64" :weight bold))
+          ("🏆 ACHIEVED" . (:foreground "#689d6a" :weight bold))
+          ("🚫 DROPPED" . (:foreground "#665c54" :weight bold)))))
 
-        ;; - Moving a task to =KILLED= adds a =killed= tag
-        ;; - Moving a task to =WAIT= adds a =waiting= tag
-        ;; - Moving a task to a done state removes =WAIT= and =HOLD= tags
-        ;; - Moving a task to =TODO= removes all tags
-        ;; - Moving a task to =NEXT= removes all tags
-        ;; - Moving a task to =DONE= removes all tags
-        org-todo-state-tags-triggers
-        '(("KILL" ("killed" . t))
-          ("HOLD" ("hold" . t))
-          ("WAIT" ("waiting" . t))
-          (done ("waiting") ("hold"))
-          ("TODO" ("waiting") ("cancelled") ("hold"))
-          ("NEXT" ("waiting") ("cancelled") ("hold"))
-          ("DONE" ("waiting") ("cancelled") ("hold")))
+;; Visual enhancements for Org
+(after! org-modern
+  (setq org-modern-star '("◉" "○" "◈" "◇" "◆" "▷")
+        org-modern-hide-stars "· "
+        org-modern-list '((43 . "➤") (45 . "–") (42 . "•"))
+        org-modern-table-vertical 1
+        org-modern-table-horizontal 0.1
+        org-modern-block-name '(("src" "»" "«") ("example" "»" "«") ("quote" "❝" "❞"))
+        ;; Style tags with a subtle box, inspired by Doom Emacs.
+        org-modern-tag-faces `((:foreground ,(face-attribute 'default :foreground) :weight bold :box (:line-width (1 . -1) :color "#504945")))))
 
-        ;; This settings allows to fixup the state of a todo item without
-        ;; triggering notes or log.
-        org-treat-S-cursor-todo-selection-as-state-change nil))
+(after! org-appear
+  (setq org-appear-autoemphasis t
+        org-appear-autolinks t
+        org-appear-autosubmarkers t))
+
+(use-package! org-fragtog
+  :hook (org-mode . org-fragtog-mode))
+
+(after! org-capture
+  (setq org-capture-templates
+        (doct `(;; Main Capture Options
+                ("Task" :keys "t"
+                 :icon ("nf-oct-tasklist" :set "octicon" :color "red")
+                 :file "inbox.org"
+                 :headline "Tasks"
+                 :template ("* ☛ TODO %?"
+                            "  :PROPERTIES:"
+                            "  :CREATED: %U"
+                            "  :END:"))
+                ("Note" :keys "n"
+                 :icon ("nf-fa-sticky_note" :set "faicon" :color "yellow")
+                 :file "inbox.org"
+                 :headline "Notes"
+                 :template ("* %? :note:"
+                            "  :PROPERTIES:"
+                            "  :CREATED: %U"
+                            "  :END:"))
+                ("Journal" :keys "j"
+                 :icon ("nf-fa-calendar" :set "faicon" :color "pink")
+                 :file "journal.org"
+                 :datetree t
+                 :template ("* %U %?"))
+                ("Meeting" :keys "m"
+                 :icon ("nf-mdi-account_group" :set "mdicon" :color "blue")
+                 :file "inbox.org"
+                 :headline "Meetings"
+                 :template ("* Meeting: %? :meeting:"
+                            "  :PROPERTIES:"
+                            "  :CREATED: %U"
+                            "  :ATTENDEES:"
+                            "  :END:"
+                            "** Agenda"
+                            "** Notes"
+                            "** Action Items"))
+                ;; Long-term Planning
+                ("Project" :keys "p"
+                 :icon ("nf-oct-repo" :set "octicon" :color "green")
+                 :file "projects.org"
+                 :headline "Projects"
+                 :template ("* 📋 PLAN %? :project:"
+                            "  :PROPERTIES:"
+                            "  :CREATED: %U"
+                            "  :GOAL:"
+                            "  :DEADLINE:"
+                            "  :END:"
+                            "** Goals"
+                            "** Tasks"
+                            "*** ☛ TODO Define project scope"
+                            "** Resources"
+                            "** Notes"))
+                ("Book" :keys "b"
+                 :icon ("nf-mdi-book_open_page_variant" :set "mdicon" :color "orange")
+                 :file "reading.org"
+                 :headline "Reading List"
+                 :template ("* %? :book:read:"
+                            "  :PROPERTIES:"
+                            "  :CREATED: %U"
+                            "  :AUTHOR:"
+                            "  :GENRE:"
+                            "  :RATING:"
+                            "  :END:"
+                            "** Summary"
+                            "** Key Takeaways"
+                            "** Quotes"))
+                ("Goal" :keys "g"
+                 :icon ("nf-mdi-flag_checkered" :set "mdicon" :color "purple")
+                 :file "goals.org"
+                 :headline "Goals"
+                 :template ("* 🎯 GOAL %? :goal:"
+                            "  DEADLINE: %(org-read-date nil nil \"+1y\")"
+                            "  :PROPERTIES:"
+                            "  :CREATED: %U"
+                            "  :END:"
+                            "** Why this goal?"
+                            "** Success criteria"
+                            "** Action steps"
+                            "*** ☛ TODO Break down into smaller tasks"))
+                ;; Protocol links
+                ("Protocol" :keys "P"
+                 :icon ("nf-fa-link" :set "faicon" :color "blue")
+                 :file "Notes.org"
+                 :template ("* ☛ TODO %^{Title}"
+                            "Source: %u"
+                            "#+BEGIN_QUOTE"
+                            "%i"
+                            "#+END_QUOTE"
+                            "%?"))))))
+
+(after! org-roam
+  (setq org-roam-directory (expand-file-name "roam" org-directory))
+  (setq org-roam-db-location (expand-file-name ".org-roam.db" org-roam-directory))
+
+  (setq org-roam-node-display-template
+        (concat "${title:*} " (propertize "${tags:20}" 'face 'org-tag)))
+
+  ;; Configure the backlinks buffer to open on the right, like in vanilla config
+  (add-to-list 'display-buffer-alist
+               '("\\*org-roam\\*"
+                 (display-buffer-in-direction)
+                 (direction . right)
+                 (window-width . 0.33)
+                 (window-height . fit-window-to-buffer)))
+
+  ;; Hook to update modification times, keeping the graph fresh
+  (defun +my/org-roam-update-modified-timestamp ()
+    "Update modified timestamp in org-roam files before saving."
+    (when (and (eq major-mode 'org-mode) (org-roam-file-p))
+      (save-excursion
+        (goto-char (point-min))
+        (when (re-search-forward "^#\\+modified:" nil t)
+          (delete-region (point) (line-end-position))
+          (insert (format " %s" (format-time-string "[%Y-%m-%d %a %H:%M]")))))))
+  (add-hook 'before-save-hook #'+my/org-roam-update-modified-timestamp)
+  (setq org-roam-dailies-directory "daily/"))
+
+(use-package! org-roam-ui
+  :after org-roam
+  :config
+  (setq org-roam-ui-sync-theme t
+        org-roam-ui-follow t
+        org-roam-ui-update-on-save t
+        org-roam-ui-open-on-start nil)) ; Set to `t` to open UI on startup
+
+(after! org-agenda
+  (setq org-agenda-files (list org-directory (expand-file-name "roam" org-directory)))
+  (setq org-agenda-skip-scheduled-if-done t
+        org-agenda-skip-deadline-if-done t
+        org-agenda-include-deadlines t
+        org-agenda-block-separator 'hr
+        org-agenda-compact-blocks t)
+  (org-super-agenda-mode))
+
+;; The powerful agenda "dashboard" from vanilla config
+(setq org-agenda-custom-commands
+      '(("o" "Dashboard"
+         ((agenda "" ((org-deadline-warning-days 7)
+                      (org-agenda-overriding-header "📅 Agenda")))
+          (todo "⚡ NEXT" ((org-agenda-overriding-header "⚡ Next Tasks")))
+          (tags-todo "project/🚀 ACTIVE" ((org-agenda-overriding-header "🚀 Active Projects")))
+          (tags-todo "+PRIORITY=\"A\"" ((org-agenda-overriding-header "🔥 High Priority")))
+          (todo "⏳ WAIT" ((org-agenda-overriding-header "⏳ Waiting On")))
+          (tags-todo "+habit" ((org-agenda-overriding-header "🔄 Habits")))
+          (stuck "" ((org-agenda-overriding-header "🚫 Stuck Projects")))))
+
+        ("p" "Projects Overview"
+         ((tags "project" ((org-agenda-overriding-header "📋 All Projects")))))
+
+        ("g" "Goals Review"
+         ((tags-todo "goal" ((org-agenda-overriding-header "🎯 Goals")))))))
+
+(setq org-super-agenda-groups
+      '((:name "🔥 Overdue" :deadline past)
+        (:name "📅 Today" :time-grid t :scheduled today)
+        (:name "⚡ Next" :todo "⚡ NEXT")
+        (:name "🔴 Important" :priority "A")
+        (:name "🚀 Active Projects" :tag "project" :todo "ACTIVE")
+        (:name "🎯 Goals" :tag "goal")
+        (:name "🔄 Habits" :tag "habit")
+        (:name "⏳ Waiting" :todo "WAIT")
+        (:discard (:anything t))))
 
 ;; Disable flyspell spell checking for org headlines
 (after! org
@@ -329,648 +364,10 @@
   ;; Override the flyspell mode predicate for org-mode
   (put 'org-mode 'flyspell-mode-predicate '+my/org-mode-flyspell-verify))
 
-(use-package! visual-fill-column
-  :custom
-  (visual-fill-column-width 300)
-  (visual-fill-column-center-text t)
-  :hook (org-mode . visual-fill-column-mode))
-
-(setq org-use-property-inheritance t)
-
-(setq org-archive-location "archive/Archive_%s::")
-
-(defun my-org-archive-done-tasks ()
-  "Attempt to archive all done tasks in file"
-  (interactive)
-  (org-map-entries
-   (lambda ()
-     (org-archive-subtree)
-     (setq org-map-continue-from (org-element-property :begin (org-element-at-point))))
-   "/DONE" 'file))
-
-(map! :map org-mode-map
-      :desc "Archive tasks marked DONE" "C-c DEL a" #'my-org-archive-done-tasks)
-
-(defun my-org-remove-kill-tasks ()
-  (interactive)
-  (org-map-entries
-   (lambda ()
-     (org-cut-subtree)
-     (pop kill-ring)
-     (setq org-map-continue-from (org-element-property :begin (org-element-at-point))))
-   "/KILL" 'file))
-
-(map! :map org-mode-map :desc "Remove tasks marked as KILL" "C-c DEL k" #'my-org-remove-kill-tasks)
-
-(setq org-startup-with-inline-images t)
-(setq org-image-actual-width 600)
-
-(use-package! doct
-  :defer t
-  :commands (doct))
-
-(defun org-capture-select-template-prettier (&optional keys)
-  "Select a capture template, in a prettier way than default
-Lisp programs can force the template by setting KEYS to a string."
-  (let ((org-capture-templates
-         (or (org-contextualize-keys
-              (org-capture-upgrade-templates org-capture-templates)
-              org-capture-templates-contexts)
-             '(("t" "Task" entry (file+headline "" "Tasks")
-                "* TODO %?\n  %u\n  %a")))))
-    (if keys
-        (or (assoc keys org-capture-templates)
-            (error "No capture template referred to by \"%s\" keys" keys))
-      (org-mks org-capture-templates
-               "Select a capture template\n━━━━━━━━━━━━━━━━━━━━━━━━━"
-               "Template key: "
-               `(("q" ,(concat (nerd-icons-octicon "nf-oct-stop" :face 'nerd-icons-red :v-adjust 0.01) "\tAbort")))))))
-(advice-add 'org-capture-select-template :override #'org-capture-select-template-prettier)
-
-(defun org-mks-pretty (table title &optional prompt specials)
-  "Select a member of an alist with multiple keys. Prettified.
-
-TABLE is the alist which should contain entries where the car is a string.
-There should be two types of entries.
-
-1. prefix descriptions like (\"a\" \"Description\")
-   This indicates that `a' is a prefix key for multi-letter selection, and
-   that there are entries following with keys like \"ab\", \"ax\"…
-
-2. Select-able members must have more than two elements, with the first
-   being the string of keys that lead to selecting it, and the second a
-   short description string of the item.
-
-The command will then make a temporary buffer listing all entries
-that can be selected with a single key, and all the single key
-prefixes.  When you press the key for a single-letter entry, it is selected.
-When you press a prefix key, the commands (and maybe further prefixes)
-under this key will be shown and offered for selection.
-
-TITLE will be placed over the selection in the temporary buffer,
-PROMPT will be used when prompting for a key.  SPECIALS is an
-alist with (\"key\" \"description\") entries.  When one of these
-is selected, only the bare key is returned."
-  (save-window-excursion
-    (let ((inhibit-quit t)
-          (buffer (org-switch-to-buffer-other-window "*Org Select*"))
-          (prompt (or prompt "Select: "))
-          case-fold-search
-          current)
-      (unwind-protect
-          (catch 'exit
-            (while t
-              (setq-local evil-normal-state-cursor (list nil))
-              (erase-buffer)
-              (insert title "\n\n")
-              (let ((des-keys nil)
-                    (allowed-keys '("\C-g"))
-                    (tab-alternatives '("\s" "\t" "\r"))
-                    (cursor-type nil))
-                ;; Populate allowed keys and descriptions keys
-                ;; available with CURRENT selector.
-                (let ((re (format "\\`%s\\(.\\)\\'"
-                                  (if current (regexp-quote current) "")))
-                      (prefix (if current (concat current " ") "")))
-                  (dolist (entry table)
-                    (pcase entry
-                      ;; Description.
-                      (`(,(and key (pred (string-match re))) ,desc)
-                       (let ((k (match-string 1 key)))
-                         (push k des-keys)
-                         ;; Keys ending in tab, space or RET are equivalent.
-                         (if (member k tab-alternatives)
-                             (push "\t" allowed-keys)
-                           (push k allowed-keys))
-                         (insert (propertize prefix 'face 'font-lock-comment-face) (propertize k 'face 'bold) (propertize "›" 'face 'font-lock-comment-face) "  " desc "…" "\n")))
-                      ;; Usable entry.
-                      (`(,(and key (pred (string-match re))) ,desc . ,_)
-                       (let ((k (match-string 1 key)))
-                         (insert (propertize prefix 'face 'font-lock-comment-face) (propertize k 'face 'bold) "   " desc "\n")
-                         (push k allowed-keys)))
-                      (_ nil))))
-                ;; Insert special entries, if any.
-                (when specials
-                  (insert "─────────────────────────\n")
-                  (pcase-dolist (`(,key ,description) specials)
-                    (insert (format "%s   %s\n" (propertize key 'face '(bold nerd-icons-red)) description))
-                    (push key allowed-keys)))
-                ;; Display UI and let user select an entry or
-                ;; a sub-level prefix.
-                (goto-char (point-min))
-                (unless (pos-visible-in-window-p (point-max))
-                  (org-fit-window-to-buffer))
-                (let ((pressed (org--mks-read-key allowed-keys prompt nil)))
-                  (setq current (concat current pressed))
-                  (cond
-                   ((equal pressed "\C-g") (user-error "Abort"))
-                   ((equal pressed "ESC") (user-error "Abort"))
-                   ;; Selection is a prefix: open a new menu.
-                   ((member pressed des-keys))
-                   ;; Selection matches an association: return it.
-                   ((let ((entry (assoc current table)))
-                      (and entry (throw 'exit entry))))
-                   ;; Selection matches a special entry: return the
-                   ;; selection prefix.
-                   ((assoc current specials) (throw 'exit current))
-                   (t (error "No entry available")))))))
-        (when buffer (kill-buffer buffer))))))
-
-(advice-add 'org-mks :override #'org-mks-pretty)
-
-(setf (alist-get 'height +org-capture-frame-parameters) 15)
-;; (alist-get 'name +org-capture-frame-parameters) "❖ Capture") ;; ATM hardcoded in other places, so changing breaks stuff
-(setq +org-capture-fn
-      (lambda ()
-        (interactive)
-        (set-window-parameter nil 'mode-line-format 'none)
-        (org-capture)))
-
-(defun +doct-icon-declaration-to-icon (declaration)
-  "Convert :icon declaration to icon"
-  (let ((name (pop declaration))
-        (set  (intern (concat "nerd-icons-" (plist-get declaration :set))))
-        (face (intern (concat "nerd-icons-" (plist-get declaration :color))))
-        (v-adjust (or (plist-get declaration :v-adjust) 0.01)))
-    (apply set `(,name :face ,face :v-adjust ,v-adjust))))
-
-(defun +doct-iconify-capture-templates (groups)
-  "Add declaration's :icon to each template group in GROUPS."
-  (let ((templates (doct-flatten-lists-in groups)))
-    (setq doct-templates (mapcar (lambda (template)
-                                   (when-let* ((props (nthcdr (if (= (length template) 4) 2 5) template))
-                                               (spec (plist-get (plist-get props :doct) :icon)))
-                                     (setf (nth 1 template) (concat (+doct-icon-declaration-to-icon spec)
-                                                                    "\t"
-                                                                    (nth 1 template))))
-                                   template)
-                                 templates))))
-
-(setq doct-after-conversion-functions '(+doct-iconify-capture-templates))
-
-(after! org-capture
-  (defun +org-capture/replace-brackets (link)
-    (mapconcat
-     (lambda (c)
-       (pcase (key-description (vector c))
-         ("[" "(")
-         ("]" ")")
-         (_ (key-description (vector c)))))
-     link))
-
-  (setq org-capture-templates
-        (doct `(("Home" :keys "h"
-                 :icon ("nf-fa-home" :set "faicon" :color "cyan")
-                 :file "Home.org"
-                 :prepend t
-                 :headline "Inbox"
-                 :template ("* TODO %?"
-                            "%i %a"))
-                ("Work" :keys "w"
-                 :icon ("nf-fa-building" :set "faicon" :color "yellow")
-                 :file "Work.org"
-                 :prepend t
-                 :headline "Inbox"
-                 :template ("* TODO %?"
-                            "SCHEDULED: %^{Schedule:}t"
-                            "DEADLINE: %^{Deadline:}t"
-                            "%i %a"))
-                ("Note" :keys "n"
-                 :icon ("nf-fa-sticky_note" :set "faicon" :color "yellow")
-                 :file "Notes.org"
-                 :template ("* %?"
-                            "%i %a"))
-                ("Journal" :keys "j"
-                 :icon ("nf-fa-calendar" :set "faicon" :color "pink")
-                 :type plain
-                 :function (lambda ()
-                             (org-journal-new-entry t)
-                             (unless (eq org-journal-file-type 'daily)
-                               (org-narrow-to-subtree))
-                             (goto-char (point-max)))
-                 :template "** %(format-time-string org-journal-time-format)%^{Title}\n%i%?"
-                 :jump-to-captured t
-                 :immediate-finish t)
-                ("Protocol" :keys "P"
-                 :icon ("nf-fa-link" :set "faicon" :color "blue")
-                 :file "Notes.org"
-                 :template ("* TODO %^{Title}"
-                            "Source: %u"
-                            "#+BEGIN_QUOTE"
-                            "%i"
-                            "#+END_QUOTE"
-                            "%?"))
-                ("Protocol link" :keys "L"
-                 :icon ("nf-fa-link" :set "faicon" :color "blue")
-                 :file "Notes.org"
-                 :template ("* TODO %?"
-                            "[[%:link][%:description]]"
-                            "Captured on: %U"))
-                ("Project" :keys "p"
-                 :icon ("nf-oct-repo" :set "octicon" :color "silver")
-                 :prepend t
-                 :type entry
-                 :headline "Inbox"
-                 :template ("* %{keyword} %?"
-                            "%i"
-                            "%a")
-                 :file ""
-                 :custom (:keyword "")
-                 :children (("Task" :keys "t"
-                             :icon ("nf-cod-checklist" :set "codicon" :color "green")
-                             :keyword "TODO"
-                             :file +org-capture-project-todo-file)
-                            ("Note" :keys "n"
-                             :icon ("nf-fa-sticky_note" :set "faicon" :color "yellow")
-                             :keyword "%U"
-                             :file +org-capture-project-notes-file)))))))
-
-(use-package! org-roam
-  :init
-  ;; Essential directory setup
-  (setq org-roam-directory "~/org/roam/")
-  (setq org-roam-db-location (concat org-roam-directory ".org-roam.db"))
-
-  ;; Performance optimizations
-  (setq org-roam-db-gc-threshold gc-cons-threshold)
-
-  :config
-  ;; Enable org-roam-db-autosync-mode for automatic database updates
-  ;; Initialize after org-roam is loaded to prevent startup issues
-  (org-roam-db-autosync-enable)
-
-  ;; Node display configuration
-  (setq org-roam-node-display-template
-        (concat "${title:*} "
-                (propertize "${tags:10}" 'face 'org-tag)))
-
-  ;; Enhanced capture templates with multiple types
-  (setq org-roam-capture-templates
-        '(("d" "default" plain
-           "%?"
-           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-                             "#+title: ${title}\n#+created: %U\n#+last_modified: %U\n\n")
-           :unnarrowed t)
-
-          ("l" "literature" plain
-           "* Source\n\nAuthor: %^{Author}\nTitle: ${title}\nYear: %^{Year}\n\n* Summary\n\n%?\n\n* Key Points\n\n* Personal Thoughts\n\n"
-           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-                             "#+title: ${title}\n#+filetags: :literature:\n#+created: %U\n#+last_modified: %U\n\n")
-           :unnarrowed t)
-
-          ("p" "project" plain
-           "* Project Overview\n\n%?\n\n* Goals\n\n* Tasks\n\n* Resources\n\n* Notes\n\n"
-           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-                             "#+title: ${title}\n#+filetags: :project:\n#+created: %U\n#+last_modified: %U\n\n")
-           :unnarrowed t)
-
-          ("m" "meeting" plain
-           "* Attendees\n\n%^{Attendees}\n\n* Agenda\n\n%?\n\n* Action Items\n\n* Follow-up\n\n"
-           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-                             "#+title: ${title}\n#+filetags: :meeting:\n#+created: %U\n#+last_modified: %U\n\n")
-           :unnarrowed t)
-
-          ("c" "concept" plain
-           "* Definition\n\n%?\n\n* Examples\n\n* Related Concepts\n\n* References\n\n"
-           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-                             "#+title: ${title}\n#+filetags: :concept:\n#+created: %U\n#+last_modified: %U\n\n")
-           :unnarrowed t)))
-
-  ;; Daily notes configuration
-  (setq org-roam-dailies-directory "daily/")
-  (setq org-roam-dailies-capture-templates
-        '(("d" "default" entry
-           "* %<%H:%M> %?"
-           :target (file+head "%<%Y-%m-%d>.org"
-                             "#+title: %<%Y-%m-%d>\n#+filetags: :daily:\n\n"))
-
-          ("j" "journal" entry
-           "* %<%H:%M> Journal :journal:\n%?"
-           :target (file+head "%<%Y-%m-%d>.org"
-                             "#+title: %<%Y-%m-%d>\n#+filetags: :daily:\n\n"))
-
-          ("m" "meeting" entry
-           "* %<%H:%M> Meeting: %^{Meeting Title} :meeting:\n%?"
-           :target (file+head "%<%Y-%m-%d>.org"
-                             "#+title: %<%Y-%m-%d>\n#+filetags: :daily:\n\n"))
-
-          ("t" "task" entry
-           "* TODO %^{Task} :task:\nSCHEDULED: %t\n%?"
-           :target (file+head "%<%Y-%m-%d>.org"
-                             "#+title: %<%Y-%m-%d>\n#+filetags: :daily:\n\n"))))
-
-  ;; Completion system configuration
-  (setq org-roam-completion-everywhere t)
-
-  ;; Graph configuration with better defaults
-  (setq org-roam-graph-executable "dot")
-  (setq org-roam-graph-extra-config
-        '(("overlap" . "false")
-          ("splines" . "true")
-          ("rankdir" . "LR")
-          ("bgcolor" . "transparent")))
-
-  ;; Auto-update file modification time with error handling
-  (add-hook 'org-roam-find-file-hook
-            (lambda ()
-              (when (and (org-roam-file-p) (buffer-file-name))
-                (add-hook 'before-save-hook 'org-roam-update-last-modified nil t)))))
-
-;; Function to update last modified timestamp with error handling
-(defun org-roam-update-last-modified ()
-  "Update the #+last_modified timestamp in the current buffer."
-  (when (and (buffer-file-name)
-             (org-roam-file-p))
-    (save-excursion
-      (goto-char (point-min))
-      (when (re-search-forward "^#\\+last_modified:" nil t)
-        (let ((inhibit-read-only t))
-          (delete-region (line-beginning-position) (line-end-position))
-          (insert (format "#+last_modified: %s"
-                         (format-time-string "[%Y-%m-%d %a %H:%M]"))))))))
-
-;; Enhanced node filtering functions
-(defun org-roam-node-find-by-tag (tag)
-  "Find org-roam nodes filtered by TAG."
-  (interactive "sTag: ")
-  (org-roam-node-find
-   nil nil
-   (lambda (node)
-     (member tag (org-roam-node-tags node)))))
-
-(defun org-roam-literature-notes ()
-  "Browse literature notes."
-  (interactive)
-  (org-roam-node-find-by-tag "literature"))
-
-(defun org-roam-project-notes ()
-  "Browse project notes."
-  (interactive)
-  (org-roam-node-find-by-tag "project"))
-
-(defun org-roam-meeting-notes ()
-  "Browse meeting notes."
-  (interactive)
-  (org-roam-node-find-by-tag "meeting"))
-
-;; Org-roam UI setup (optional - only if using org-roam-ui)
-(use-package! websocket
-  :after org-roam)
-
-(use-package! org-roam-ui
-  :after org-roam
-  :config
-  (setq org-roam-ui-sync-theme t
-        org-roam-ui-follow t
-        org-roam-ui-update-on-save t
-        org-roam-ui-open-on-start nil)) ; Changed to nil to prevent auto-opening
-
-(after! org-agenda
-  (setq org-agenda-files (append org-agenda-files (list org-roam-directory))))
-
-(defun org-roam-backlinks-count (node)
-  "Return the number of backlinks for NODE."
-  (length (org-roam-backlinks-get node)))
-
-(defun org-roam-orphaned-nodes ()
-  "Find nodes without any backlinks."
-  (interactive)
-  (let ((nodes (org-roam-node-list)))
-    (seq-filter (lambda (node)
-                  (= 0 (org-roam-backlinks-count node)))
-                nodes)))
-
-;; Custom agenda view for org-roam
-(defun org-roam-agenda-custom ()
-  "Custom agenda view for org-roam files."
-  (interactive)
-  (let ((org-agenda-files (list org-roam-directory)))
-    (org-agenda nil "a")))
-
-;; Performance optimization for large databases
-(setq org-roam-db-node-include-function
-      (lambda ()
-        (not (member "archive" (org-get-tags)))))
-
-;; Database maintenance function
-(defun org-roam-db-rebuild ()
-  "Rebuild the org-roam database."
-  (interactive)
-  (org-roam-db-clear-all)
-  (org-roam-db-sync))
-
-;; Safe database initialization
-(defun org-roam-ensure-db ()
-  "Ensure org-roam database is properly initialized."
-  (unless (file-exists-p org-roam-db-location)
-    (org-roam-db-sync)))
-
-;; Initialize database safely
-(add-hook 'org-roam-mode-hook #'org-roam-ensure-db)
-
-;; Export enhancement
-(after! ox
-  (setq org-export-with-broken-links 'mark))
-
-;; Ensure org-roam directory exists
-(unless (file-directory-p org-roam-directory)
-  (make-directory org-roam-directory t))
-
-;; Hook to ensure database is synced after major operations
-(add-hook 'kill-emacs-hook #'org-roam-db-sync)
-
-;; Doom Emacs keybinding configuration using map! macro
-(map! :leader
-      :prefix "n"
-      :desc "Find node" "f" #'org-roam-node-find
-      :desc "Insert node" "i" #'org-roam-node-insert
-      :desc "Capture" "c" #'org-roam-capture
-      :desc "Show graph" "g" #'org-roam-graph
-      :desc "Literature notes" "l" #'org-roam-literature-notes
-      :desc "Project notes" "p" #'org-roam-project-notes
-      :desc "Meeting notes" "m" #'org-roam-meeting-notes
-      :desc "Custom agenda" "a" #'org-roam-agenda-custom
-      :desc "Rebuild database" "R" #'org-roam-db-rebuild)
-
-;; Daily notes keybindings
-(map! :leader
-      :prefix "n d"
-      :desc "Today" "t" #'org-roam-dailies-goto-today
-      :desc "Yesterday" "y" #'org-roam-dailies-goto-yesterday
-      :desc "Tomorrow" "T" #'org-roam-dailies-goto-tomorrow
-      :desc "Capture today" "c" #'org-roam-dailies-capture-today
-      :desc "Find date" "d" #'org-roam-dailies-goto-date
-      :desc "Capture date" "C" #'org-roam-dailies-capture-date)
-
-;; Alternative keybindings that work with vanilla Emacs style
-(after! org-roam
-  (define-key org-roam-mode-map (kbd "C-c n f") #'org-roam-node-find)
-  (define-key org-roam-mode-map (kbd "C-c n i") #'org-roam-node-insert)
-  (define-key org-roam-mode-map (kbd "C-c n c") #'org-roam-capture)
-  (define-key org-roam-mode-map (kbd "C-c n g") #'org-roam-graph))
-
-;; Optional: Enable org-roam-ui mode toggle
-(when (modulep! :lang org +roam2)
-  (map! :leader
-        :prefix "n"
-        :desc "Toggle UI" "u" #'org-roam-ui-mode))
-
-(after! org-appear
-  (setq org-appear-autoemphasis t
-        org-appear-autolinks t
-        org-appear-autosubmarkers t))
-
 (setq +zen-mixed-pitch-modes '(org-mode LaTeX-mode markdown-mode gfm-mode Info-mode rst-mode adoc-mode))
 
 (dolist (hook +zen-mixed-pitch-modes)
   (add-hook (intern (concat (symbol-name hook) "-hook")) #'mixed-pitch-mode))
-
-(setq enable-dir-local-variables t)
-(defun elken/find-time-property (property)
-  "Find the PROPETY in the current buffer."
-  (save-excursion
-    (goto-char (point-min))
-    (let ((first-heading
-           (save-excursion
-             (re-search-forward org-outline-regexp-bol nil t))))
-      (when (re-search-forward (format "^#\\+%s:" property) nil t)
-        (point)))))
-
-(defun elken/has-time-property-p (property)
-  "Gets the position of PROPETY if it exists, nil if not and empty string if it's undefined."
-  (when-let ((pos (elken/find-time-property property)))
-    (save-excursion
-      (goto-char pos)
-      (if (and (looking-at-p " ")
-               (progn (forward-char)
-                      (org-at-timestamp-p 'lax)))
-          pos
-        ""))))
-
-(defun elken/set-time-property (property &optional pos)
-  "Set the PROPERTY in the current buffer.
-Can pass the position as POS if already computed."
-  (when-let ((pos (or pos (elken/find-time-property property))))
-    (save-excursion
-      (goto-char pos)
-      (if (looking-at-p " ")
-          (forward-char)
-        (insert " "))
-      (delete-region (point) (line-end-position))
-      (let* ((now (format-time-string "<%Y-%m-%d %H:%M>")))
-        (insert now)))))
-
-(add-hook! 'before-save-hook (when (derived-mode-p 'org-mode)
-                               (elken/set-time-property "LAST_MODIFIED")
-                               (elken/set-time-property "DATE_UPDATED")))
-
-(defun unpackaged/org-element-descendant-of (type element)
-  "Return non-nil if ELEMENT is a descendant of TYPE.
-TYPE should be an element type, like `item' or `paragraph'.
-ELEMENT should be a list like that returned by `org-element-context'."
-  ;; MAYBE: Use `org-element-lineage'.
-  (when-let* ((parent (org-element-property :parent element)))
-    (or (eq type (car parent))
-        (unpackaged/org-element-descendant-of type parent))))
-
-;;;###autoload
-(defun unpackaged/org-return-dwim (&optional default)
-  "A helpful replacement for `org-return-indent'.  With prefix, call `org-return-indent'.
-
-On headings, move point to position after entry content.  In
-lists, insert a new item or end the list, with checkbox if
-appropriate.  In tables, insert a new row or end the table."
-  ;; Inspired by John Kitchin: http://kitchingroup.cheme.cmu.edu/blog/2017/04/09/A-better-return-in-org-mode/
-  (interactive "P")
-  (if default
-      (org-return t)
-    (cond
-     ;; Act depending on context around point.
-
-     ;; NOTE: I prefer RET to not follow links, but by uncommenting this block, links will be
-     ;; followed.
-
-     ;; ((eq 'link (car (org-element-context)))
-     ;;  ;; Link: Open it.
-     ;;  (org-open-at-point-global))
-
-     ((org-at-heading-p)
-      ;; Heading: Move to position after entry content.
-      ;; NOTE: This is probably the most interesting feature of this function.
-      (let ((heading-start (org-entry-beginning-position)))
-        (goto-char (org-entry-end-position))
-        (cond ((and (org-at-heading-p)
-                    (= heading-start (org-entry-beginning-position)))
-               ;; Entry ends on its heading; add newline after
-               (end-of-line)
-               (insert "\n\n"))
-              (t
-               ;; Entry ends after its heading; back up
-               (forward-line -1)
-               (end-of-line)
-               (when (org-at-heading-p)
-                 ;; At the same heading
-                 (forward-line)
-                 (insert "\n")
-                 (forward-line -1))
-               (while (not (looking-back "\\(?:[[:blank:]]?\n\\)\\{3\\}" nil))
-                 (insert "\n"))
-               (forward-line -1)))))
-
-     ((org-at-item-checkbox-p)
-      ;; Checkbox: Insert new item with checkbox.
-      (org-insert-todo-heading nil))
-
-     ((org-in-item-p)
-      ;; Plain list.  Yes, this gets a little complicated...
-      (let ((context (org-element-context)))
-        (if (or (eq 'plain-list (car context))  ; First item in list
-                (and (eq 'item (car context))
-                     (not (eq (org-element-property :contents-begin context)
-                              (org-element-property :contents-end context))))
-                (unpackaged/org-element-descendant-of 'item context))  ; Element in list item, e.g. a link
-            ;; Non-empty item: Add new item.
-            (org-insert-item)
-          ;; Empty item: Close the list.
-          ;; TODO: Do this with org functions rather than operating on the text. Can't seem to find the right function.
-          (delete-region (line-beginning-position) (line-end-position))
-          (insert "\n"))))
-
-     ((when (fboundp 'org-inlinetask-in-task-p)
-        (org-inlinetask-in-task-p))
-      ;; Inline task: Don't insert a new heading.
-      (org-return t))
-
-     ((org-at-table-p)
-      (cond ((save-excursion
-               (beginning-of-line)
-               ;; See `org-table-next-field'.
-               (cl-loop with end = (line-end-position)
-                        for cell = (org-element-table-cell-parser)
-                        always (equal (org-element-property :contents-begin cell)
-                                      (org-element-property :contents-end cell))
-                        while (re-search-forward "|" end t)))
-             ;; Empty row: end the table.
-             (delete-region (line-beginning-position) (line-end-position))
-             (org-return t))
-            (t
-             ;; Non-empty row: call `org-return-indent'.
-             (org-return t))))
-     (t
-      ;; All other cases: call `org-return-indent'.
-      (org-return t)))))
-
-(map! :after evil-org
-      :map evil-org-mode-map
-      :i [return] #'unpackaged/org-return-dwim)
-
-(use-package! graphviz-dot-mode
-  :commands graphviz-dot-mode
-  :mode ("\\.dot\\'" . graphviz-dot-mode)
-  :init
-  (after! org
-    (setcdr (assoc "dot" org-src-lang-modes)
-            'graphviz-dot)))
 
 (use-package! org-super-agenda
   :commands org-super-agenda-mode)
@@ -1067,148 +464,7 @@ appropriate.  In tables, insert a new row or end the table."
 (use-package! multi-vterm
   :after vterm)
 
-(autoload #'consult--read "consult")
-
-;;;###autoload
-(defun +vertico/projectile-completion-fn (prompt choices)
-  "Given a PROMPT and a list of CHOICES, filter a list of files for
-`projectile-find-file'."
-  (interactive)
-  (consult--read
-   choices
-   :prompt prompt
-   :sort nil
-   :add-history (thing-at-point 'filename)
-   :category 'file
-   :history '(:input +vertico/find-file-in--history)))
-
-(setq projectile-completion-system '+vertico/projectile-completion-fn)
-
-(defun flatten-imenu-index (index &optional prefix)
-  "Flatten an org-mode imenu index."
-  (let ((flattened '()))
-    (dolist (item index flattened)
-      (let* ((name (propertize (car item) 'face (intern (format "org-level-%d" (if prefix (+ 2 (cl-count ?/ prefix)) 1)))))
-             (prefix (if prefix (concat prefix "/" name) name)))
-        (if (imenu--subalist-p item)
-            (setq flattened (append flattened (flatten-imenu-index (cdr item) prefix)))
-          (push (cons prefix (cdr item)) flattened))))
-    (nreverse flattened)))
-
-;;;###autoload
-(defun +literate-jump-heading ()
-  "Jump to a heading in the literate org file."
-  (interactive)
-  (let* ((+literate-config-file (file-name-concat doom-user-dir "config.org"))
-         (buffer (or (find-buffer-visiting +literate-config-file)
-                     (find-file-noselect +literate-config-file t))))
-    (with-current-buffer buffer
-      (let* ((imenu-auto-rescan t)
-             (org-imenu-depth 8)
-             (index (flatten-imenu-index (imenu--make-index-alist))))
-        (let ((c (current-window-configuration))
-              (result nil))
-          (unwind-protect
-              (progn
-                (switch-to-buffer buffer)
-                (cond
-                 ((modulep! :completion vertico)
-                  (setq result (consult-org-heading)))
-                 (t
-                  (let ((entry (assoc (completing-read "Go to heading: " index nil t) index)))
-                    (setq result entry)
-                    (imenu entry)))))
-            (unless result
-              (set-window-configuration c))))))))
-
-(map! :leader :n :desc "Open heading in literate config" "f o" #'+literate-jump-heading)
-
-(setq evil-split-window-below t
-      evil-vsplit-window-right t)
-
-(setq evil-want-fine-undo t)
-(setq evil-kill-on-visual-paste nil)
-(setq evil-disable-insert-state-bindings t)
-
-(use-package! paredit
-  :hook (emacs-lisp-mode . paredit-mode)
-  :hook (clojure-mode . paredit-mode))
-
-(use-package! evil-cleverparens
-  :when (modulep! :editor evil +everywhere)
-  :hook (paredit-mode . evil-cleverparens-mode))
-
-;; Add visual feedback for evil operators like 'd', 'y', 'c'
-(use-package! evil-goggles
-  :after evil
-  :config
-  (evil-goggles-mode)
-  ;; Optionally, customize the colors
-  (setq evil-goggles-pulse t)
-  (custom-set-faces!
-    '(evil-goggles-heading :foreground "darkorange" :background "darkorange")
-    '(evil-goggles-text :foreground "gold" :background "gold")))
-
-;; Set cursor color for different evil states
-(setq evil-normal-state-cursor '("gold" box)
-      evil-visual-state-cursor '("orangered" box)
-      evil-insert-state-cursor '("deep sky blue" bar)
-      evil-emacs-state-cursor  '("deep sky blue" box))
-
-;; Use "jk" to escape from insert mode
-(setq evil-escape-key-sequence "jk"
-      evil-escape-delay 0.2)
-
 (setq forge-owned-accounts '(("aahsnr")))
-
-(after! treemacs-
-  (defvar treemacs-file-ignore-extensions '()
-    "File extension which `treemacs-ignore-filter' will ensure are ignored")
-  (defvar treemacs-file-ignore-globs '()
-    "Globs which will are transformed to `treemacs-file-ignore-regexps' which `treemacs-ignore-filter' will ensure are ignored")
-  (defvar treemacs-file-ignore-regexps '()
-    "RegExps to be tested to ignore files, generated from `treeemacs-file-ignore-globs'")
-  (defun treemacs-file-ignore-generate-regexps ()
-    "Generate `treemacs-file-ignore-regexps' from `treemacs-file-ignore-globs'"
-    (setq treemacs-file-ignore-regexps (mapcar 'dired-glob-regexp treemacs-file-ignore-globs)))
-  (if (equal treemacs-file-ignore-globs '()) nil (treemacs-file-ignore-generate-regexps))
-  (defun treemacs-ignore-filter (file full-path)
-    "Ignore files specified by `treemacs-file-ignore-extensions', and `treemacs-file-ignore-regexps'"
-    (or (member (file-name-extension file) treemacs-file-ignore-extensions)
-        (let ((ignore-file nil))
-          (dolist (regexp treemacs-file-ignore-regexps ignore-file)
-            (setq ignore-file (or ignore-file (if (string-match-p regexp full-path) t nil)))))))
-  (add-to-list 'treemacs-ignored-file-predicates #'treemacs-ignore-filter))
-
-(setq treemacs-file-ignore-extensions
-      '(;; LaTeX
-        "aux"
-        "ptc"
-        "fdb_latexmk"
-        "fls"
-        "synctex.gz"
-        "toc"
-        ;; LaTeX - glossary
-        "glg"
-        "glo"
-        "gls"
-        "glsdefs"
-        "ist"
-        "acn"
-        "acr"
-        "alg"
-        ;; LaTeX - pgfplots
-        "mw"
-        ;; LaTeX - pdfx
-        "pdfa.xmpi"
-        ))
-(setq treemacs-file-ignore-globs
-      '(;; LaTeX
-        "*/_minted-*"
-        ;; AucTeX
-        "*/.auctex-auto"
-        "*/_region_.log"
-        "*/_region_.tex"))
 
 (use-package! feature-mode
   :mode "\\.feature$")
@@ -1222,12 +478,5 @@ appropriate.  In tables, insert a new row or end the table."
 (with-eval-after-load 'ob-jupyter
   (org-babel-jupyter-aliases-from-kernelspecs))
 
-;; Add this to your config.el to configure Dirvish
-(after! dirvish
-  (setq dirvish-quick-access-entries
-   '(("h" "~/" "Home")
-     ("d" "~/Downloads/" "Downloads")
-     ("D" "~/Documents/" "Documents")
-     ("p" "~/Projects/" "Projects")
-     ("/" "/" "Root")))
-  (setq dirvish-attributes '(nerd-icons file-time file-size collapse subtree-state vc-state)))
+(map! :leader
+      :desc "Open like spacemacs" "SPC" #'execute-extended-command)
