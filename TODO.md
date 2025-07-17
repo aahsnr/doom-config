@@ -6,6 +6,8 @@
 
 - [x] __Replace lsp-mode with eglot & eglot-booster__
 
+- [ ] __LaTeX Setup__ [Comprehensive setup using the gemini setups in personal email and also use elken's setup]
+
 - [ ] __Auto Format all files using alphaelia__
 
 - [x] __Replace dap-mode with dape__
@@ -15,8 +17,6 @@
 - [x] __Add consult-flymake__
 
 - [x] __Fix dired/dirvish__
-
-- [ ] __Setup global word-wrap__
 
 - [x] __Evil__
 
@@ -32,7 +32,7 @@
 
 - [ ] __Treemacs toggle__
 
-- [ ] __Dired__
+- [ ] __Add keybindings Table for Dired__
 
 - [ ] __PDF Tools__
 
@@ -42,13 +42,11 @@
 
 - [x] __Solaire Mode__
 
-- [x] __Alphaelia as the Formatter__
-
 - [x] __Doom Modeline__
 
 - [x] __Recent Files__
 
-- [ ] __Savehist__
+- [x] __Savehist__
 
 - [ ] __Window Management__
 
