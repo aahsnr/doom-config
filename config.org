@@ -66,7 +66,19 @@
   (setq which-key-popup-type 'minibuffer))
 #+end_src
 
-#+RESULTS:
+** Modeline
+#+begin_src emacs-lisp
+(after! doom-modeline
+  (setq doom-modeline-buffer-file-name-style 'truncate-upto-project
+        doom-modeline-display-buffer-encoding nil
+        doom-modeline-display-buffer-encoding nil))
+#+end_src
+
+** Rainbow Delimiters
+#+begin_src emacs-lisp
+(use-package! rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
+#+end_src
 
 * Editor & Evil
 ** Core
@@ -80,9 +92,9 @@
 ** TODO Custom cursor colors from vanilla config
 Change to catppuccin mocha theme
 #+begin_src emacs-lisp
-(setq evil-normal-state-cursor '(box "#fe8019")
-      evil-insert-state-cursor '(bar "#fb4934")
-      evil-visual-state-cursor '(hollow "#fe8019"))
+(setq evil-normal-state-cursor '(box "#fab387")  ;; Catppuccin Mocha Peach
+      evil-insert-state-cursor '(bar "#f38ba8")  ;; Catppuccin Mocha Red
+      evil-visual-state-cursor '(hollow "#fab387")) ;; Catppuccin Mocha Peach
 #+end_src
 
 ** Use jk to escape insert mode
@@ -255,17 +267,17 @@ To center org text
         '((sequence "☛ TODO(t)" "⚡ NEXT(n)" "🔄 PROG(p)" "⏳ WAIT(w@/!)" "|" "✅ DONE(d!)" "❌ CANCELLED(c@)")
           (sequence "🎯 GOAL(G)" "🚀 ACTIVE(A)" "⏸ PAUSED(x)" "|" "🏆 ACHIEVED(a)" "🚫 DROPPED(X)")))
   (setq org-todo-keyword-faces
-        '(("☛ TODO" . (:foreground "#fb4934" :weight bold))
-          ("⚡ NEXT" . (:foreground "#fabd2f" :weight bold))
-          ("🔄 PROG" . (:foreground "#83a598" :weight bold))
-          ("⏳ WAIT" . (:foreground "#d3869b" :weight bold))
-          ("✅ DONE" . (:foreground "#b8bb26" :weight bold))
-          ("❌ CANCELLED" . (:foreground "#928374" :weight bold))
-          ("🎯 GOAL" . (:foreground "#b16286" :weight bold))
-          ("🚀 ACTIVE" . (:foreground "#d79921" :weight bold))
-          ("⏸ PAUSED" . (:foreground "#7c6f64" :weight bold))
-          ("🏆 ACHIEVED" . (:foreground "#689d6a" :weight bold))
-          ("🚫 DROPPED" . (:foreground "#665c54" :weight bold)))))
+        '(("☛ TODO" . (:foreground "#f38ba8" :weight bold))
+          ("⚡ NEXT" . (:foreground "#fab387" :weight bold))
+          ("🔄 PROG" . (:foreground "#89b4fa" :weight bold))
+          ("⏳ WAIT" . (:foreground "#f9e2af" :weight bold))
+          ("✅ DONE" . (:foreground "#a6e3a1" :weight bold))
+          ("❌ CANCELLED" . (:foreground "#cdd6f4" :weight bold))
+          ("🎯 GOAL" . (:foreground "#b4befe" :weight bold))
+          ("🚀 ACTIVE" . (:foreground "#74c7ce" :weight bold))
+          ("⏸ PAUSED" . (:foreground "#9399b2" :weight bold))
+          ("🏆 ACHIEVED" . (:foreground "#a6e3a1" :weight bold))
+          ("🚫 DROPPED" . (:foreground "#585b70" :weight bold)))))
 #+end_src
 
 ** Org Modern
@@ -279,7 +291,7 @@ To center org text
         org-modern-table-horizontal 0.1
         org-modern-block-name '(("src" "»" "«") ("example" "»" "«") ("quote" "❝" "❞"))
         ;; Style tags with a subtle box, inspired by Doom Emacs.
-        org-modern-tag-faces `((:foreground ,(face-attribute 'default :foreground) :weight bold :box (:line-width (1 . -1) :color "#504945")))))
+        org-modern-tag-faces `((:foreground ,(face-attribute 'default :foreground) :weight bold :box (:line-width (1 . -1) :color "#45475a")))))
 #+end_src
 
 ** Org Appear
@@ -574,30 +586,6 @@ To center org text
                           (:discard (:tag ("Chore" "Routine" "Daily")))))))))))
 #+end_src
 
-* Vterm
-#+begin_src emacs-lisp
-(setq vterm-always-compile-module t)
-(setq vterm-kill-buffer-on-exit t)
-
-(after! vterm
-  (define-key vterm-mode-map (kbd "<C-backspace>") (lambda () (interactive) (vterm-send-key (kbd "C-w")))))
-
-(after! vterm
-  (setf (alist-get "woman" vterm-eval-cmds nil nil #'equal)
-        '((lambda (topic)
-            (woman topic))))
-  (setf (alist-get "magit-status" vterm-eval-cmds nil nil #'equal)
-        '((lambda (path)
-            (magit-status path))))
-  (setf (alist-get "dired" vterm-eval-cmds nil nil #'equal)
-        '((lambda (dir)
-            (dired dir)))))
-(setq vterm-shell "/usr/bin/zsh")
-
-(use-package! multi-vterm
-  :after vterm)
-#+end_src
-
 * Magit
 ** Forge
 #+begin_src emacs-lisp
@@ -626,9 +614,21 @@ To center org text
   (org-babel-jupyter-aliases-from-kernelspecs))
 #+end_src
 
-* Emacs Behaviour and Enhancements
 ** M-x
 #+begin_src emacs-lisp
 (map! :leader
       :desc "Open like spacemacs" "SPC" #'execute-extended-command)
+#+end_src
+
+** Smartparens
+#+begin_src emacs-lisp
+(after! smartparens
+  ;; Enable show-pair mode for bracket highlighting
+  (show-smartparens-global-mode 1)
+
+  ;; Explicitly define smartparens highlighting faces for Catppuccin Mocha
+  (custom-set-faces
+   '(sp-show-pair-face ((t (:background "#6e6a86" :foreground "#cdd6f4" :underline nil))))
+   '(sp-show-pair-match-face ((t (:background "#6e6a86" :foreground "#cdd6f4" :weight bold))))
+   '(sp-show-pair-mismatch-face ((t (:background "#f38ba8" :foreground "#1e1e2e" :weight bold))))))
 #+end_src

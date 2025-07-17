@@ -8,6 +8,7 @@
 (package! info-colors)
 (package! colorful-mode)
 (package! rainbow-identifiers)
+(package! rainbow-delimiters)
 
 ;; Evil
 (package! evil-goggles)

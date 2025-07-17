@@ -191,7 +191,7 @@
         +roam2)
        ;;php               ; perl's insecure younger brother
        ;;plantuml            ; diagrams for confusing people more
-       graphviz            ; diagrams for confusing yourself even more
+       ;;graphviz            ; diagrams for confusing yourself even more
        ;;purescript        ; javascript, but functional
        (python
         +conda
