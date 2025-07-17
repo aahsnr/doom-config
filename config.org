@@ -619,13 +619,6 @@ To center org text
   :mode "\\.service$")
 #+end_src
 
-** RPM Spec
-
-#+begin_src emacs-lisp
-(use-package! rpm-spec-mode
-  :mode "\\.spec\\(\\.in\\)?$")
-#+end_src
-
 ** Jupyter
 
 #+begin_src emacs-lisp

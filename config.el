@@ -472,9 +472,6 @@
 (use-package! systemd
   :mode "\\.service$")
 
-(use-package! rpm-spec-mode
-  :mode "\\.spec\\(\\.in\\)?$")
-
 (with-eval-after-load 'ob-jupyter
   (org-babel-jupyter-aliases-from-kernelspecs))
 

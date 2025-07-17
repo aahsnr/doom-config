@@ -34,8 +34,6 @@
 (package! multi-vterm)
 (package! feature-mode)
 (package! systemd)
-(package! rpm-spec-mode
-  :recipe (:host github :repo "bhavin192/rpm-spec-mode"))
 (package! eglot-booster
   :recipe (:host github :repo "jdtsmith/eglot-booster"))
 
