@@ -56,4 +56,5 @@
 
 ;; Ignored Packages
 (package! hydra :ignore t)
+(package! dape :ignore t)
 (package! helm-bibtex :ignore t)
