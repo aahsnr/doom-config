@@ -651,199 +651,6 @@
 (map! :map org-mode-map :desc "Remove tasks marked as KILL" "C-c DEL k" #'ar/org-remove-kill-tasks)
 #+end_src
 
-* Markdown
-** Core
-#+begin_src emacs-lisp
-(use-package! markdown-mode
-  ;; These modes will run automatically whenever you open a markdown file.
-  :hook ((markdown-mode . visual-line-mode)   ; Enable soft-wrapping for readability.
-         (markdown-mode . markdown-toc-mode)) ; Enable table of contents commands.
-  :config
-  ;; Use grip for a GitHub-like preview in the browser.
-  (setq markdown-command "grip"))
-
-#+end_src
-
-** Preview
-#+begin_src emacs-lisp
-(use-package! vmd-mode
-  :config
-  ;; Configure the appearance of the live preview pane.
-  ;; Other themes: 'gfm', 'neutron', 'classic'.
-  (setq vmd-theme "github")
-  (setq vmd-show-sidebar nil)) ; Hides the VMD navigation sidebar for a cleaner look.
-#+end_src
-
-** Table of Contents
-#+begin_src emacs-lisp
-(use-package! markdown-toc
-  :config
-  ;; Automatically update the Table of Contents when the file is saved.
-  ;; This hook is smart and only runs if a TOC already exists.
-  (add-hook 'before-save-hook #'markdown-toc-refresh-toc-in-buffer-only-if-dirty))
-#+end_src
-
-** Keybindings
-#+begin_src emacs-lisp
-(map! :leader
-      :map markdown-mode-map
-      :prefix ("m" . "Markdown")
-      ;; Live Previews
-      "p" '(vmd-mode :wk "Toggle Live Preview Pane")
-      "P" '(markdown-open :wk "Open in Browser (Grip)")
-
-      ;; Table of Contents
-      "t" '(:ignore t :wk "Table of Contents")
-      "ti" '(markdown-toc-insert-toc :wk "Insert TOC")
-      "tu" '(markdown-toc-refresh :wk "Update TOC")
-
-      ;; Table Editing (using markdown-mode's built-in functions)
-      "a" '(:ignore t :wk "Table")
-      "aa" '(markdown-table-align :wk "Align/Format Table")
-      "ar" '(markdown-table-insert-row :wk "Insert Row")
-      "ac" '(markdown-table-insert-col :wk "Insert Column")
-      "ad" '(markdown-table-delete-col :wk "Delete Column")
-
-      ;; Insertion & Execution
-      "i" '(:ignore t :wk "Insert")
-      "ii" '(markdown-insert-image :wk "Insert Image")
-      "il" '(markdown-insert-link :wk "Insert Link")
-      "c" '(org-babel-execute-src-block :wk "Execute Code Block")
-
-      ;; Navigation & Folding (uses evil-mode defaults)
-      "]h" '(markdown-next-heading :wk "Next Heading")
-      "[h" '(markdown-previous-heading :wk "Previous Heading")
-      "]t" '(markdown-next-table :wk "Next Table")
-      "[t" '(markdown-previous-table :wk "Previous Table"))
-
-#+end_src
-
-* Python
-#+begin_src emacs-lisp
-;;;; ------------------------------------------------------------------
-;;;; PYTHON CONFIGURATION (FINALIZED)
-;;;; ------------------------------------------------------------------
-
-(use-package! python
-  :config
-  ;; Tree-sitter is automatically configured by the `+tree-sitter` flag
-  ;; in your `init.el`. This provides superior syntax highlighting and code
-  ;; navigation.
-
-  ;;;###
-  ;;;### Linter (Pylint) & Formatter (Black)
-  ;;;###
-  (setq flycheck-python-checkers '(pylint))
-  (set-formatter! 'black '("black" "--quiet" "-") :modes '(python-mode))
-
-
-  ;;;###
-  ;;;### Interactive Evaluation with vterm
-  ;;;###
-  ;; Helper function to find a vterm buffer running a python/ipython REPL
-  (defun ar/python-get-vterm-buffer ()
-    "Find a vterm buffer running a python REPL, or create one."
-    (let ((buf (cl-find-if (lambda (b)
-                             (with-current-buffer b
-                               (and (eq major-mode 'vterm-mode)
-                                    (string-match-p "\\(ipython\\|python\\)" vterm--process-executable))))
-                           (buffer-list))))
-      (if buf
-          buf
-        (progn
-          (call-interactively #'+vterm/here)
-          (vterm-send-string "ipython\n")
-          (current-buffer)))))
-
-  ;; Function to send code to the vterm REPL
-  (defun ar/python-send-to-vterm (beg end)
-    "Send the region from BEG to END to a Python vterm REPL."
-    (interactive "r")
-    (with-current-buffer (ar/python-get-vterm-buffer)
-      (vterm-send-string (buffer-substring-no-properties beg end))
-      (vterm-send-string "\n")))
-
-
-  ;;;###
-  ;;;### Debugger (DAP for Python)
-  ;;;###
-  (after! dap-mode
-    (dap-register-debug-template
-     "Python: Debug Current File"
-     (list :type "python" :request "launch" :name "DAP: Py - File"
-           :program "${file}" :console "integratedTerminal"))
-
-    (dap-register-debug-template
-     "Python: Debug File w/ Args"
-     (list :type "python" :request "launch" :name "DAP: Py - File w/ Args"
-           :program "${file}" :args (split-string (read-string "Arguments: "))
-           :console "integratedTerminal"))
-
-    (dap-register-debug-template
-     "Python: Debug Pytest File"
-     (list :type "python" :request "launch" :name "DAP: Py - Pytest File"
-           :module "pytest" :args ["-s" "-v" "${file}"]
-           :console "integratedTerminal"))
-
-    (dap-register-debug-template
-     "Python: Debug Pytest Project"
-     (list :type "python" :request "launch" :name "DAP: Py - Pytest Project"
-           :module "pytest" :args ["-s" "-v"]
-           :console "integratedTerminal"))
-
-    (dap-register-debug-template
-     "Python: Attach to Process"
-     (list :type "python" :request "attach" :name "DAP: Py - Attach"
-           :connect (list :host "localhost"
-                          :port (read-string "Attach to port: " "5678")))))
-
-
-  ;;;###
-  ;;;### Org Mode, Jupyter, and Environment Management
-  ;;;###
-  ;; For Poetry/Venv projects, ensure Emacs uses the correct Python environment.
-  ;; Since you enabled `:tools direnv` and `:lang python +poetry`, the best way
-  ;; is to `cd` into your project and run `direnv allow` in your shell. This
-  ;; will automatically activate the poetry virtualenv for Emacs, so that
-  ;; `pyright` (LSP) and `jupyter` find the correct packages.
-  (after! org
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     '((python . t) (jupyter . t)))
-
-    (add-hook 'org-src-mode-hook
-              (defun ar/org-python-src-block-setup ()
-                "Enable Python IDE features in Org source blocks."
-                (when (string-equal-nocase (org-element-property :language (org-element-at-point))
-                                           "python")
-                  (lsp-deferred)
-                  (eldoc-mode +1)))))
-
-
-  ;;;###
-  ;;;### Keybindings
-  ;;;###
-  (map! :leader
-        :map python-mode-map
-        ;; Code (c) - Run / Send
-        :prefix ("c" . "code")
-        "c" '(python-execute-file :wk "Run file")
-        "r" '(dap-python-run-repl :wk "Run project REPL")
-        "s" '(:ignore t :wk "send to vterm")
-        "sl" '(ar/python-send-to-vterm :wk "Send line")
-        "sr" #'(lambda () (interactive) (ar/python-send-to-vterm (region-beginning) (region-end)))
-        ;; Debugging (d)
-        :prefix ("d" . "debug")
-        "d" '(dap-debug :wk "Debug...")
-        "b" '(dap-toggle-breakpoint :wk "Toggle breakpoint")
-        "c" '(dap-continue :wk "Continue")
-        "q" '(dap-disconnect :wk "Disconnect")
-        ;; Testing (t)
-        :prefix ("t" . "test")
-        "f" '(dap-pytest-run :wk "Run tests in file")
-        "p" #'(lambda () (interactive) (dap-debug "Python: Debug Pytest Project"))))
-#+end_src
-
 * Writing
 ** Citation and Bibliography
 1. In Zotero, install the "Better BibTeX for Zotero" plugin.
@@ -853,14 +660,17 @@
 
 *** Directory
 #+begin_src emacs-lisp
-(defvar my-bib-file (expand-file-name "roam/bibliography.bib" org-directory)
-  "The absolute path to the bibliography file auto-exported by Zotero.")
+(defvar my-bib-files
+  (list
+   (expand-file-name "roam/bibliography.bib" org-directory) ; Main library from Zotero
+   (expand-file-name "projects/my-project/project.bib" org-directory)) ; A project-specific file
+  "A list of all bibliography files to be used.")
 #+end_src
 
 *** Citar Configuration
 #+begin_src emacs-lisp
 (after! citar
-  (setq citar-bibliography (list my-bib-file))
+  (setq citar-bibliography (list my-bib-files))
   (setq citar-notes-paths (list (expand-file-name "roam/notes/" org-directory)))
   (setq citar-at-point-function 'embark-act) ; Use Embark for contextual actions
 
@@ -871,10 +681,21 @@
         `((file ,(nerd-icons-octicon "nf-oct-file" :face 'nerd-icons-red) . " ")
           (note ,(nerd-icons-octicon "nf-oct-note" :face 'nerd-icons-yellow) . " ")
           (link ,(nerd-icons-octicon "nf-oct-link" :face 'nerd-icons-blue) . " "))))
-
 #+end_src
 
-*** Org Roam Integration
+*** Org Roam BibTeX for Note Taking
+#+begin_src emacs-lisp
+(after! org-roam-bibtex
+  (setq orb-bibtex-file (car my-bib-files)) ; ORB needs one primary file for note creation
+  (setq orb-roam-directory (expand-file-name "roam/notes/" org-directory))
+  (setq orb-templates
+        '(("r" "ref" plain (function org-roam-capture--get-point) ""
+           :file-name "${citekey}"
+           :head "#+TITLE: ${title}\n#+AUTHOR: ${author-or-editor}\n#+ROAM_KEY: ${ref}\n#+ROAM_TAGS: lit-note\n\n* Summary\n\n* Quotes\n\n* My Thoughts\n\n* Related\n\n- ${citekey}"
+           :unnarrowed t))))
+#+end_src
+
+*** Integration between Citar and Org-Roam
 #+begin_src emacs-lisp
 (after! org-roam
   (require 'citar-org-roam)
@@ -1116,6 +937,7 @@
       "ce" '(TeX-error-overview :wk "Error Overview")
       "ck" '(TeX-clean :wk "Clean Aux Files")
       "i" '(:ignore t :wk "Insert")
+      "in" '(orb-note-actions :wk "Create/Open Literature Note (ORB)")
       "ic" '(citar-insert-citation :wk "Insert Citation")
       "ip" '(my/latex-insert-packages-tex :wk "Insert Project Packages")
       "il" '(LaTeX-insert-label :wk "Insert Label")
@@ -1124,6 +946,11 @@
       "ee" '(LaTeX-environment :wk "Insert Environment")
       "s" '(:ignore t :wk "Section")
       "ss" '(LaTeX-section :wk "Insert Section"))
+
+(map! :leader
+      :map org-roam-mode-map
+      :prefix ("n" . "roam") ; 'n' for node
+      "l" '(orb-note-actions :wk "Literature Note Actions (ORB)"))
 
 (map! :leader
       :map org-mode-map

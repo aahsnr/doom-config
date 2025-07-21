@@ -13,12 +13,6 @@
 ;; Evil
 (package! evil-goggles)
 (package! evil-escape)
-(package! evil-cleverparens
-  :recipe (:host github :repo "tomdl89/evil-cleverparens" :branch "fix/delete-escaped-parens"))
-(package! paredit)
-
-;; Markdown
-(package! vmd-mode)
 
 ;; Org & Roam
 (package! org-roam-ui)
@@ -37,8 +31,6 @@
 (package! org-fragtog)
 (package! citar-org-roam)
 (package! org-roam-bibtex)
-(package! consult-bibtex
-  :recipe (:host github :repo "mohkale/consult-bibtex"))
 (package! mixed-pitch)
 (package! laas)
 (package! ox-chameleon :recipe (:host github :repo "tecosaur/ox-chameleon"))
