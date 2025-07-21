@@ -582,22 +582,19 @@
               (rainbow-delimiters-mode))))
 
 (after! lsp-mode
-  ;; Register texlab as a client for lsp-mode
+  ;; 1. Register texlab as a client for lsp-mode
   (lsp-register-client
    (make-lsp-client :new-connection (lsp-stdio-connection '("texlab"))
                     :major-modes '(tex-mode latex-mode)
                     :remote? t
                     :server-id 'texlab))
-  ;; Configure lsp-mode's settings for the texlab client
-  (setf (lsp--client-const (lsp-client-by-id 'texlab) :settings)
-        (lambda ()
-          `(:texlab
-            (:build
-             (:executable "tectonic")
-             (:args ["-Z" "shell-escape" "--outdir=%OUTDIR%" "%FILE%"]))
-            (:forwardSearch
-             (:executable "zathura")
-             (:args ["--synctex-forward" "%LINE%:%COLUMN%" "%PDF%"]))))))
+
+  ;; 2. Configure the settings for texlab using the modern API
+  (lsp-register-custom-settings
+   '(("texlab.build.executable" "tectonic")
+     ("texlab.build.args" ["-Z" "shell-escape" "--outdir=%OUTDIR%" "%FILE%"])
+     ("texlab.forwardSearch.executable" "zathura")
+     ("texlab.forwardSearch.args" ["--synctex-forward" "%LINE%:%COLUMN%" "%PDF%"]))))
 
 (setq +zen-mixed-pitch-modes '(org-mode LaTeX-mode markdown-mode))
 (dolist (hook +zen-mixed-pitch-modes)
