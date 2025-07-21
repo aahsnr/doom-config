@@ -1,39 +1,97 @@
-;; --- THEME: CATPPUCCIN (MOCHA) ---
-(setq catppuccin-flavor 'mocha)
+;;; init.el --- Summary
+;;
+;; This file contains the updated Doom Emacs configuration,
+;; applying the Catppuccin Macchiato color palette,
+;; fixing PDF highlight settings, and enhancing solaire-mode contrast.
+;;
+;; Author: Gemini
+;;; Commentary:
+;;
+;; This configuration aims to provide a visually consistent and
+;; functional Emacs setup with the Catppuccin Macchiato theme.
+;;
+;; Changes include:
+;; - Updated hex codes for cursor colors and Org TODO keywords to Macchiato.
+;; - Corrected PDF highlight configuration using `pdf-annot-default-annotation-properties`.
+;; - Adjusted `pdf-view-midnight-colors` to use a darker background for enhanced solaire-mode contrast.
+;; - Explicitly set `solaire-default-face` background for a darker overall solaire-mode contrast.
+;;
+;;; Code:
+
+;; --- THEME: CATPPUCCIN (MACCHIATO) ---
+;; Set the Catppuccin flavor to 'macchiato.
+(setq catppuccin-flavor 'macchiato
+      catppuccin-highlight-matches t
+      catppuccin-italic-comments t
+      catppuccin-italic-variables t
+      catppuccin-italic-functions t
+      catppuccin-italic-keywords t)
+
+;; Load the catppuccin theme.
 (setq doom-theme 'catppuccin)
 
-;; --- UI CUSTOMIZATIONS WITH HEX CODES ---
+;; --- SOLAIRE-MODE DARKER CONTRAST ---
+;; To ensure a darker background for the whole solaire-mode setup
+;; for "ancillary" buffers (like *Messages*, *scratch*, popups, etc.),
+;; explicitly set the background of `solaire-default-face` to a darker
+;; color from the Macchiato palette (Crust: #232634).
+(custom-set-faces
+ '(solaire-default-face ((t (:background "#232634"))))) ; Macchiato Crust
 
-;; Custom cursor colors
-(setq evil-normal-state-cursor `(box "#fab387")      ; Peach
-      evil-insert-state-cursor `(bar "#f38ba8")      ; Red
-      evil-visual-state-cursor `(hollow "#fab387"))  ; Peach
+;; --- UI CUSTOMIZATIONS WITH HEX CODES (Macchiato Palette) ---
 
-;; Org TODO keyword faces
+;; Custom cursor colors for Evil mode states.
+;; Using Macchiato Peach for normal and visual, Red for insert.
+(setq evil-normal-state-cursor `(box "#f5a97f")      ; Macchiato Peach
+      evil-insert-state-cursor `(bar "#ed8796")      ; Macchiato Red
+      evil-visual-state-cursor `(hollow "#f5a97f"))  ; Macchiato Peach
+
+;; Org TODO keyword faces with Macchiato colors.
 (setq org-todo-keyword-faces
-      '(("☛ TODO"      . (:foreground "#f38ba8" :weight bold))   ; Red
-        ("⚡ NEXT"      . (:foreground "#f9e2af" :weight bold))   ; Yellow
-        ("🔄 PROG"      . (:foreground "#94e2d5" :weight bold))   ; Teal
-        ("⏳ WAIT"      . (:foreground "#cba6f7" :weight bold))   ; Mauve
-        ("✅ DONE"      . (:foreground "#a6e3a1" :weight bold))   ; Green
-        ("❌ CANCELLED" . (:foreground "#a6adc8" :weight bold))   ; Subtext0
-        ("🎯 GOAL"      . (:foreground "#b4befe" :weight bold))   ; Lavender
-        ("🚀 ACTIVE"    . (:foreground "#fab387" :weight bold))   ; Peach
-        ("⏸ PAUSED"    . (:foreground "#7f849c" :weight bold))   ; Overlay1
-        ("🏆 ACHIEVED"  . (:foreground "#74c7ec" :weight bold))   ; Sapphire
-        ("🚫 DROPPED"   . (:foreground "#585b70" :weight bold)))) ; Surface2
+      '(("☛ TODO"      . (:foreground "#ed8796" :weight bold))   ; Macchiato Red
+        ("⚡ NEXT"      . (:foreground "#eed49f" :weight bold))   ; Macchiato Yellow
+        ("🔄 PROG"      . (:foreground "#8bd5ca" :weight bold))   ; Macchiato Teal
+        ("⏳ WAIT"      . (:foreground "#c6a0f6" :weight bold))   ; Macchiato Mauve
+        ("✅ DONE"      . (:foreground "#a6da95" :weight bold))   ; Macchiato Green
+        ("❌ CANCELLED" . (:foreground "#a5adce" :weight bold)) ; Macchiato Subtext0
+        ("🎯 GOAL"      . (:foreground "#babbf1" :weight bold))   ; Macchiato Lavender
+        ("🚀 ACTIVE"    . (:foreground "#f5a97f" :weight bold))   ; Macchiato Peach
+        ("⏸ PAUSED"    . (:foreground "#838ba7" :weight bold))   ; Macchiato Overlay1
+        ("🏆 ACHIEVED"  . (:foreground "#85c1dc" :weight bold))   ; Macchiato Sapphire
+        ("🚫 DROPPED"   . (:foreground "#626880" :weight bold)))) ; Macchiato Surface2
 
-;; PDF Tools colors
+;; PDF Tools colors and highlight fix.
 (after! pdf-tools
-  (setq pdf-view-midnight-colors (cons "#1e1e2e" "#cdd6f4")) ; Base, Text
-  (set-face-attribute 'pdf-view-highlight-face nil :background "#89b4fa")) ; Sky
+  ;; Set midnight mode colors for PDF viewer.
+  ;; Using Macchiato Crust for background (darker contrast)
+  ;; and Macchiato Text for foreground.
+  (setq pdf-view-midnight-colors (cons "#232634" "#c6d0f5")) ; Macchiato Crust, Macchiato Text
 
-;; Org Modern tag styling
+  ;; Fix for pdf-view-highlight-face:
+  ;; The linter error indicates 'pdf-view-highlight-face' might not be the correct way
+  ;; to customize PDF highlights. Instead, we modify `pdf-annot-default-annotation-properties`
+  ;; to set the highlight color for annotations.
+  ;; This ensures compatibility and correct behavior.
+  (setq pdf-annot-default-annotation-properties
+        (delq nil
+              (cl-loop for (type props) in pdf-annot-default-annotation-properties
+                       collect (cond
+                                ((eq type 'highlight)
+                                 `(highlight (color . "#8caaee"))) ; Macchiato Blue for highlight
+                                (t `(,type ,props))))))
+
+  ;; If `pdf-annot-default-annotation-properties` was empty or didn't have highlight,
+  ;; ensure it's added.
+  (unless (assoc 'highlight pdf-annot-default-annotation-properties)
+    (add-to-list 'pdf-annot-default-annotation-properties '(highlight (color . "#8caaee")))))
+
+
+;; Org Modern tag styling with Macchiato colors.
 (after! org-modern
   (setq org-modern-tag-faces
-        `((:foreground "#cdd6f4" :weight bold :box (:line-width (1 . -1) :color "#313244"))))) ; Text, Surface0
+        `((:foreground "#c6d0f5" :weight bold :box (:line-width (1 . -1) :color "#414559"))))) ; Macchiato Text, Macchiato Surface0
 
-;; --- MARGINALIA (This part is unchanged) ---
+;; --- MARGINALIA (Unchanged, as it uses dynamic color blending) ---
 (after! marginalia
   (setq marginalia-censor-variables nil)
 
@@ -69,3 +127,4 @@
                     (doom-blend 'red 'orange (- size-index 1)))))
       (propertize (file-size-human-readable size) 'face (list :foreground color)))))
 
+;;; catppuccin.el ends here

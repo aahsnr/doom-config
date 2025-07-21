@@ -1,6 +1,18 @@
+# Example Doom Emacs Configuration Examples
+- [ ] https://github.com/ArtemSmaznov/dotfiles-doom-emacs.git 
+- [ ] https://github.com/tecosaur/emacs-config/blob/master/config.org 
+- [ ] https://github.com/hieutkt/dotfiles/tree/main/emacs/.doom.d
+- [ ] https://github.com/elken/doom
+- [ ] https://joshblais.com/posts/my-literate-doom-emacs-config/
+- [ ] https://github.com/michaelneuper/doom
+
+
 # All tasks must be done in the given order
 
-## After finishing gemini config, including LaTeX, add from elken, then some from tecosaur
+- **Next Tasks**: 
+1. Update dired and dirvish from dirvish.el 
+2. Update smartparens if not already.
+3. Finish copying configurations, if necessary, from the example configs above.
 
 -   [ ] **Make sure the following packages are working org source code
     blocks, first by manually checking, then adding if neccessary**
@@ -9,64 +21,18 @@
     -   Eglot, eldoc, dape, flymake
     -   Alphaelia
 
--   [ ] [1st Approach]{.underline} Update the latex part of the already
-    generated configurations with lsp-mode instead of eglot. I have
-    attached the doom emacs configuration files. Use these files as a
-    guide to modify the latex configuration. Also integrate the latex
-    part of the org configuration from the attached elken-doom
-    configuration into my latex setup, so org-mode can write like latex
-    documents and export to pdf files like latex documents. All in all,
-    I want a latex writing environment that allows me to write
-    scientific documents both in org mode and as latex formatted
-    documents. Further, you need to also integrate org-roam and zotero
-    reference management system into the latex writing environment.
+-   [ ] **Adapt elken's org-capture configuration into mine**
 
--   [ ] [2nd Approach]{.underline} **Write a new LaTeX writing
-    environment from the following prompt:**
+-   [ ] **Replace lsp-mode with eglot & eglot-booster**
 
-Using the attached doom emacs configuration files as a guide, write a
-comprehensive setup for writing latex documents in emacs. Integrate
-tectonic from <https://github.com/tectonic-typesetting/tectonic> into
-the LaTeX writing environment, as well as integrate texlab from
-<https://github.com/latex-lsp/texlab> as the lsp backend. As a result,
-the LaTeX writing environment would use both these methods seamlessly
-and interchangeably where possible. Also integrate org-mode and org-roam
-into the LaTeX writing environment. Make sure I have the ability to
-write LaTeX documents both in org mode files as well as separate LaTeX.
-Furthermore, setup ligatures for LaTeX with additional math ligatures,
-as well as make sure to setup laas and auto-activating-snippets. Also
-setup custom snippets that might be useful to quickly format and write
-LaTeX documents both in LaTeX files and org-mode files. Additionally
-setup TeX-fold if writing separate LaTeX files. Further, use pdf-tools
-as the default pdf viewer when compiling LaTeX files. Implement a robust
-citation and reference environment citar-embark and citar-capf, as well
-as,org-roam-bibtex and citar-org-roam. Further, you need to also
-integrate zotero reference management system into the latex writing
-environment. I have also attached a different doom emacs configuration
-file named as elken-doom.el. Try to implement the latex part of the
-configuration into my latex writing environment. All in all, I want a
-latex writing environment that allows me to write scientific documents
-both in org mode and as latex formatted documents. Make sure to search
-the web before writing anything. Do not introduce errors. And keep in
-mind that doom emacs already ships with good defaults. The doom emacs
-configuration files are attached below. You do not need to write the
-whole doom emacs configuration again.
+-   [ ] **Replace dap-mode with dape**
 
--   [ ] **Adapt elken\'s org-capture configuration into mine**
+-   [ ] **Replace flycheck with flymake**
 
--   [x] **Replace lsp-mode with eglot & eglot-booster**
+-   [ ] **Add consult-flymake**
 
--   [x] **Replace dap-mode with dape**
+-   [ ] **Add toggle for dirvish, not dirvish side**
 
--   [x] **Replace flycheck with flymake**
-
--   \[x\] **Add consult-flymake**
-
--   [ ] **Rainbow Delimiters from Gemini**
-
--   \[x\] **Fix dired/dirvish**
-
--   \[x\] **Get vterm config from Gemini**
 
 -   [ ] Fix smartparens and rainbow delimiters
 

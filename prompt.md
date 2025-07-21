@@ -8,8 +8,12 @@ For the spell section in the attached doom emacs configuration files, replace fl
 
 When writing in canvas, make sure the configuration uses a markdown format that can be copied directly.
 
-
+[Non Built-in]
 Using my attached doom emacs configuration files (config.el, init.el, packages.el) as a guide, write a comprehensive and state-of-the-art python programming configuration that includes lsp-mode, treesitters, formatters, linters, and dap-mode integrations using my configuration files. Make sure to explicitely use pyright for lsp-mode, python black for formatting in apheleia, pylint for linting in flycheck and debugpy for debugging in dap-mode, and automatically enable tree-sitter for python. All these features must work inside python files. Keep in mind that doom emacs already ships with default configurations for python in general. Make sure that this setup is well integrated with the rest of the doom emacs configuration files. Make sure this configuration allows code completion inside python files. Make sure search the web before writing anything. Do not introduce errors. In other words, I want doom emacs to behave like a fully featured IDE for python programming. Think for a while before writing anything and write an in-depth configuration and take great care writing it. Plus, you do not have to rewrite my whole doom emacs configuration.
+
+[Built-in]
+Using my attached doom emacs configuration files (config.el, init.el, packages.el) as a guide, write a comprehensive and state-of-the-art python programming configuration that includes eglot, treesit, formatters, linters, and dape integrations using my configuration files. Make sure to explicitely use pyright for eglot, python black for formatting in apheleia, pylint for linting in flymake and debugpy for debugging in dap-mode, and automatically enable tree-sitter for python. All these features must work inside python files. Keep in mind that doom emacs already ships with default configurations for python in general. Make sure that this setup is well integrated with the rest of the doom emacs configuration files. Make sure this configuration allows code completion inside python files. Make sure search the web before writing anything. Do not introduce errors. In other words, I want doom emacs to behave like a fully featured IDE for python programming. Think for a while before writing anything and write an in-depth configuration and take great care writing it. Plus, you do not have to rewrite my whole doom emacs configuration.
+
 
 
 

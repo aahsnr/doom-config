@@ -5,9 +5,7 @@
 (package! catppuccin-theme)
 (package! mixed-pitch)
 (package! visual-fill-column)
-(package! info-colors)
 (package! colorful-mode)
-(package! rainbow-identifiers)
 (package! rainbow-delimiters)
 
 ;; Evil

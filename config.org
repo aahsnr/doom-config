@@ -27,8 +27,10 @@
   :custom
   (doom-themes-enable-bold t)
   (doom-themes-enable-italic t)
+  ;; Ensure treemacs theme is compatible with doom-tokyo-night.
   (doom-themes-treemacs-theme "doom-tokyo-night")
   :config
+  ;; Load the doom-tokyo-night theme.
   (load-theme 'doom-tokyo-night t)
 
   (doom-themes-visual-bell-config)
@@ -37,7 +39,21 @@
 #+end_src
 
 #+begin_src emacs-lisp
+;; (setq catppuccin-flavor 'macchiato
+;;       catppuccin-highlight-matches t
+;;       catppuccin-italic-comments t
+;;       catppuccin-italic-variables t
+;;       catppuccin-italic-functions t
+;;       catppuccin-italic-keywords t)
+
+;; ;; Load the catppuccin theme.
 ;; (setq doom-theme 'catppuccin)
+#+end_src
+
+** Solair Mode
+#+begin_src emacs-lisp
+;; (custom-set-faces
+;;  '(solaire-default-face ((t (:background "#232634"))))) ; Macchiato Crust
 #+end_src
 
 ** Fonts
@@ -92,11 +108,13 @@
 (setq evil-split-window-below t
       evil-vsplit-window-right t
       evil-want-fine-undo t)
+#+end_src
 
-;; Custom cursor colors from vanilla config
-(setq evil-normal-state-cursor '(box "#fe8019")
-      evil-insert-state-cursor '(bar "#fb4934")
-      evil-visual-state-cursor '(hollow "#fe8019"))
+** Evil Theming
+#+begin_src emacs-lisp
+(setq evil-normal-state-cursor `(box "#bb9af7")
+      evil-insert-state-cursor `(bar "#f7768e")
+      evil-visual-state-cursor `(hollow "#bb9af7"))
 #+end_src
 
 ** Evil Escape
@@ -219,20 +237,12 @@
       (propertize (file-size-human-readable size) 'face (list :foreground color)))))
 #+end_src
 
-** Info Colors
-#+begin_src emacs-lisp
-(use-package! info-colors
-  :after info
-  :commands (info-colors-fontify-node)
-  :hook (Info-selection . info-colors-fontify-node))
-#+end_src
-
 ** Spell Checking
 #+begin_src emacs-lisp
 (use-package! jinx
   :defer t
   :hook ((text-mode . jinx-mode)
-         (prog-mode . jinx-mode) ; Also useful for checking comments/strings in code
+         ;;(prog-mode . jinx-mode) ; Also useful for checking comments/strings in code
          (org-mode . jinx-mode)
          (markdown-mode . jinx-mode)
          (git-commit-mode . jinx-mode))
@@ -266,11 +276,49 @@
       (add-to-list 'vertico-multiform-categories '(jinx (vertico-grid-annotate . t))))))
 #+end_src
 
+** Rainbow Delimiters
+#+begin_src emacs-lisp
+(use-package! rainbow-delimiters
+  :config
+  ;; Enable rainbow-delimiters mode for programming, Org, and LaTeX modes.
+  (add-hook! '(prog-mode-hook org-mode-hook LaTeX-mode-hook) #'rainbow-delimiters-mode)
+
+  ;; Integrate with `mixed-pitch-mode`
+  (add-hook! 'mixed-pitch-mode-hook
+    (lambda ()
+      (when (or (derived-mode-p 'org-mode) (derived-mode-p 'latex-mode))
+        (rainbow-delimiters-mode))))
+
+  ;; TokyoNight theme Enhanced Contrast
+  (custom-set-faces
+   '(rainbow-delimiters-depth-1-face ((t (:foreground "#c9aaff"))))
+   '(rainbow-delimiters-depth-2-face ((t (:foreground "#95e7ff"))))
+   '(rainbow-delimiters-depth-3-face ((t (:foreground "#b0f085"))))
+   '(rainbow-delimiters-depth-4-face ((t (:foreground "#ffc092"))))
+   '(rainbow-delimiters-depth-5-face ((t (:foreground "#ff9cb0"))))
+   '(rainbow-delimiters-depth-6-face ((t (:foreground "#58e4f0"))))
+   '(rainbow-delimiters-depth-7-face ((t (:foreground "#ffe08c"))))
+   '(rainbow-delimiters-depth-8-face ((t (:foreground "#7f88a8"))))
+   '(rainbow-delimiters-depth-9-face ((t (:foreground "#6a728b"))))
+   '(rainbow-delimiters-depth-10-face ((t (:foreground "#565d6e"))))))
+#+end_src
+
+** Smartparens
+#+begin_src emacs-lisp
+(after! smartparens
+  ;; Enable show-pair mode globally for bracket highlighting.
+  (show-smartparens-global-mode 1)
+
+  ;; TokyoNight theme Enhanced Contrast
+  (custom-set-faces
+   '(sp-show-pair-face ((t (:background "#4e567f" :foreground "#b4bbde" :underline nil))))
+   '(sp-show-pair-match-face ((t (:background "#4e567f" :foreground "#b4bbde" :weight bold))))
+   '(sp-show-pair-mismatch-face ((t (:background "#ff8a9f" :foreground "#161720" :weight bold))))))
+#+end_src
+
 * PDF Tools
 #+begin_src emacs-lisp
 (after! pdf-tools
-  (setq pdf-view-midnight-colors (cons (doom-color 'bg) (doom-color 'fg)))
-  (set-face-attribute 'pdf-view-highlight-face nil :background (doom-color 'cyan))
   (add-hook! 'pdf-view-mode-hook
     (defun +my/pdf-view-mode-setup ()
       (auto-revert-mode 1)
@@ -305,6 +353,26 @@
         :n "o"       #'pdf-outline
         ;; SyncTeX (for LaTeX integration)
         :n "gs"      #'pdf-sync-forward-search)) ; mnemonic: go source
+
+(after! pdf-tools
+  ;; Set midnight mode colors for PDF viewer.
+  ;; Using TokyoNight Night Editor Background for a dark contrast,
+  ;; and TokyoNight Editor Foreground for text.
+  (setq pdf-view-midnight-colors (cons "#1a1b26" "#c0caf5")) ; TokyoNight Night Editor Background, Editor Foreground
+
+  ;; Fix for pdf-view-highlight-face:
+  ;; Modify `pdf-annot-default-annotation-properties` to set the highlight color.
+  (setq pdf-annot-default-annotation-properties
+        (delq nil
+              (cl-loop for (type props) in pdf-annot-default-annotation-properties
+                       collect (cond
+                                ((eq type 'highlight)
+                                 `(highlight (color . "#7aa2f7"))) ; TokyoNight Blue for highlight
+                                (t `(,type ,props))))))
+
+  ;; Ensure highlight property is present if it was not initially.
+  (unless (assoc 'highlight pdf-annot-default-annotation-properties)
+    (add-to-list 'pdf-annot-default-annotation-properties '(highlight (color . "#7aa2f7")))))
 #+end_src
 
 * File Management
@@ -319,14 +387,32 @@
 ** Dirvish
 #+begin_src emacs-lisp
 (after! dirvish
+  ;; 1. Customize attributes for a cleaner, yazi-like column view.
+  ;; We display icons, file size, modification time, and git status.
+  (setq dirvish-attributes '(nerd-icons file-size file-time vc-state))
+  ;; 2. Configure a custom header line for more information at a glance.
+  ;; Format: <File Path> <Permissions> [<Total Files>]
+  (setq dirvish-header-line-format " %p %m [%N] ")
+
+  ;; 3. Enable automatic file previews on the right, mimicking yazi's layout.
+  ;; This automatically opens a preview pane for the selected file.
+  (add-hook 'dirvish-mode-hook #'dirvish-peek-mode)
+  (setq dirvish-preview-width 0.4) ; Preview window takes 40% of the frame width
+  (setq dirvish-peek-show-on 'right)
+
+  ;; 4. Define keybindings for yazi-style navigation.
+  (map! :map dirvish-mode-map
+        :n "h" #'dirvish-up-dir          ; Go to parent directory
+        :n "l" #'dirvish-open-dwim       ; Open file or enter directory
+        :n " " #'dirvish-toggle-preview) ; Manually toggle the preview pane
+
   ;; Set quick access directories from vanilla config
   (setq dirvish-quick-access-entries
         '(("h" "~/" "Home")
           ("d" "~/Downloads/" "Downloads")
           ("D" "~/Documents/" "Documents")
           ("p" "~/Projects/" "Projects")
-          ("/" "/" "Root")))
-  (setq dirvish-attributes '(nerd-icons file-time file-size collapse subtree-state vc-state)))
+          ("/" "/" "Root"))))
 #+end_src
 
 * Org Mode
@@ -342,17 +428,7 @@
                   (org-level-6 . 1.1)
                   (org-level-7 . 1.1)
                   (org-level-8 . 1.1)))
-    (set-face-attribute (car face) nil :font "JetBrainsMono Nerd Font" :weight 'bold :height (cdr face) :slant 'unspecified))
-
-  ;; Ensure that anything that should be fixed-pitch in Org files appears that way
-  (set-face-attribute 'org-tag nil :foreground nil :inherit '(shadow fixed-pitch) :weight 'bold)
-  (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
-  (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+    (set-face-attribute (car face) nil :font "JetBrainsMono Nerd Font" :weight 'bold :height (cdr face) :slant 'unspecified)))
 #+end_src
 
 ** Core Setup
@@ -408,18 +484,18 @@
   (setq org-todo-keywords
         '((sequence "☛ TODO(t)" "⚡ NEXT(n)" "🔄 PROG(p)" "⏳ WAIT(w@/!)" "|" "✅ DONE(d!)" "❌ CANCELLED(c@)")
           (sequence "🎯 GOAL(G)" "🚀 ACTIVE(A)" "⏸ PAUSED(x)" "|" "🏆 ACHIEVED(a)" "🚫 DROPPED(X)")))
-  (setq org-todo-keyword-faces
-        '(("☛ TODO" . (:foreground "#fb4934" :weight bold))
-          ("⚡ NEXT" . (:foreground "#fabd2f" :weight bold))
-          ("🔄 PROG" . (:foreground "#83a598" :weight bold))
-          ("⏳ WAIT" . (:foreground "#d3869b" :weight bold))
-          ("✅ DONE" . (:foreground "#b8bb26" :weight bold))
-          ("❌ CANCELLED" . (:foreground "#928374" :weight bold))
-          ("🎯 GOAL" . (:foreground "#b16286" :weight bold))
-          ("🚀 ACTIVE" . (:foreground "#d79921" :weight bold))
-          ("⏸ PAUSED" . (:foreground "#7c6f64" :weight bold))
-          ("🏆 ACHIEVED" . (:foreground "#689d6a" :weight bold))
-          ("🚫 DROPPED" . (:foreground "#665c54" :weight bold)))))
+(setq org-todo-keyword-faces
+      '(("☛ TODO"      . (:foreground "#f7768e" :weight bold))
+        ("⚡ NEXT"      . (:foreground "#ff9e64" :weight bold))
+        ("🔄 PROG"      . (:foreground "#73daca" :weight bold))
+        ("⏳ WAIT"      . (:foreground "#bb9af7" :weight bold))
+        ("✅ DONE"      . (:foreground "#9ece6a" :weight bold))
+        ("❌ CANCELLED" . (:foreground "#565f89" :weight bold))
+        ("🎯 GOAL"      . (:foreground "#7dcfff" :weight bold))
+        ("🚀 ACTIVE"    . (:foreground "#ff9e64" :weight bold))
+        ("⏸ PAUSED"    . (:foreground "#565f89" :weight bold))
+        ("🏆 ACHIEVED"  . (:foreground "#2ac3de" :weight bold))
+        ("🚫 DROPPED"   . (:foreground "#565f89" :weight bold)))))
 #+end_src
 
 ** Org Modern
@@ -432,7 +508,8 @@
         org-modern-table-horizontal 0.1
         org-modern-block-name '(("src" "»" "«") ("example" "»" "«") ("quote" "❝" "❞"))
         ;; Style tags with a subtle box, inspired by Doom Emacs.
-        org-modern-tag-faces `((:foreground ,(face-attribute 'default :foreground) :weight bold :box (:line-width (1 . -1) :color "#45475a")))
+        org-modern-tag-faces
+        `((:foreground "#c0caf5" :weight bold :box (:line-width (1 . -1) :color "#414868")))
         ;; Prettier checkboxes
         org-modern-checkbox '((todo . "☐") (done . "☑") (cancel . "☒") (priority . "⚑") (on . "◉") (off . "○"))))
 #+end_src
@@ -1088,5 +1165,3 @@ configures it for Python using `debugpy`.
       :desc "Open like spacemacs" "SPC" #'execute-extended-command)
 #+end_src
 
-#+RESULTS:
-: execute-extended-command

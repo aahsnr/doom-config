@@ -167,6 +167,11 @@
                     (doom-blend 'red 'orange (- size-index 1)))))
       (propertize (file-size-human-readable size) 'face (list :foreground color)))))
 
+(use-package! info-colors
+  :after info
+  :commands (info-colors-fontify-node)
+  :hook (Info-selection . info-colors-fontify-node))
+
 (use-package! jinx
   :defer t
   :hook ((text-mode . jinx-mode)
@@ -205,39 +210,40 @@
 
 (use-package! rainbow-delimiters
   :config
-  ;; Enable rainbow-delimiters mode for programming, Org, and LaTeX modes.
   (add-hook! '(prog-mode-hook org-mode-hook LaTeX-mode-hook) #'rainbow-delimiters-mode)
-
-  ;; Integrate with `mixed-pitch-mode`
+    ;; Integrate with `mixed-pitch-mode` to ensure delimiters render correctly
+  ;; with variable-pitch fonts, especially in Org and LaTeX modes.
   (add-hook! 'mixed-pitch-mode-hook
     (lambda ()
       (when (or (derived-mode-p 'org-mode) (derived-mode-p 'latex-mode))
         (rainbow-delimiters-mode))))
 
-  ;; TokyoNight theme Enhanced Contrast
+  ;; Customize the delimiter colors to harmonize with the doom-tokyo-night theme.
   (custom-set-faces
-   '(rainbow-delimiters-depth-1-face ((t (:foreground "#c9aaff"))))
-   '(rainbow-delimiters-depth-2-face ((t (:foreground "#95e7ff"))))
-   '(rainbow-delimiters-depth-3-face ((t (:foreground "#b0f085"))))
-   '(rainbow-delimiters-depth-4-face ((t (:foreground "#ffc092"))))
-   '(rainbow-delimiters-depth-5-face ((t (:foreground "#ff9cb0"))))
-   '(rainbow-delimiters-depth-6-face ((t (:foreground "#58e4f0"))))
-   '(rainbow-delimiters-depth-7-face ((t (:foreground "#ffe08c"))))
-   '(rainbow-delimiters-depth-8-face ((t (:foreground "#7f88a8"))))
-   '(rainbow-delimiters-depth-9-face ((t (:foreground "#6a728b"))))
-   '(rainbow-delimiters-depth-10-face ((t (:foreground "#565d6e"))))))
+   '(rainbow-delimiters-depth-1-face ((t (:foreground "#bb9af7")))) ; Purple
+   '(rainbow-delimiters-depth-2-face ((t (:foreground "#7dcfff")))) ; Blue
+   '(rainbow-delimiters-depth-3-face ((t (:foreground "#9ece6a")))) ; Green
+   '(rainbow-delimiters-depth-4-face ((t (:foreground "#ff9e64")))) ; Orange
+   '(rainbow-delimiters-depth-5-face ((t (:foreground "#f7768e")))) ; Red
+   '(rainbow-delimiters-depth-6-face ((t (:foreground "#2ac3de")))) ; Cyan
+   '(rainbow-delimiters-depth-7-face ((t (:foreground "#e0af68")))))) ; Ochre/Gold
+
+   
 
 (after! smartparens
-  ;; Enable show-pair mode globally for bracket highlighting.
-  (show-smartparens-global-mode 1)
+  ;; Enable highlighting of matching delimiters
+  (show-paren-mode 1)
 
-  ;; TokyoNight theme Enhanced Contrast
-  (custom-set-faces
-   '(sp-show-pair-face ((t (:background "#4e567f" :foreground "#b4bbde" :underline nil))))
-   '(sp-show-pair-match-face ((t (:background "#4e567f" :foreground "#b4bbde" :weight bold))))
-   '(sp-show-pair-mismatch-face ((t (:background "#ff8a9f" :foreground "#161720" :weight bold))))))
+  ;; Optional: Customize the highlight face for better visibility.
+  ;; This uses a background color that complements the doom-tokyo-night theme.
+  (set-face-attribute 'show-paren-match
+                      nil
+                      :background "#3b4261" ; A noticeable background color
+                      :weight 'bold))
 
 (after! pdf-tools
+  ;; Ensure pdf-tools is initialized early.
+  ;; This might not be strictly necessary as it's a module, but ensures hooks are set up.
   (add-hook! 'pdf-view-mode-hook
     (defun +my/pdf-view-mode-setup ()
       (auto-revert-mode 1)
@@ -299,32 +305,63 @@
   (setq dired-listing-switches "-agho --group-directories-first"))
 
 (after! dirvish
-  ;; 1. Customize attributes for a cleaner, yazi-like column view.
-  ;; We display icons, file size, modification time, and git status.
-  (setq dirvish-attributes '(nerd-icons file-size file-time vc-state))
-  ;; 2. Configure a custom header line for more information at a glance.
-  ;; Format: <File Path> <Permissions> [<Total Files>]
-  (setq dirvish-header-line-format " %p %m [%N] ")
-
-  ;; 3. Enable automatic file previews on the right, mimicking yazi's layout.
-  ;; This automatically opens a preview pane for the selected file.
-  (add-hook 'dirvish-mode-hook #'dirvish-peek-mode)
-  (setq dirvish-preview-width 0.4) ; Preview window takes 40% of the frame width
-  (setq dirvish-peek-show-on 'right)
-
-  ;; 4. Define keybindings for yazi-style navigation.
-  (map! :map dirvish-mode-map
-        :n "h" #'dirvish-up-dir          ; Go to parent directory
-        :n "l" #'dirvish-open-dwim       ; Open file or enter directory
-        :n " " #'dirvish-toggle-preview) ; Manually toggle the preview pane
-
   ;; Set quick access directories from vanilla config
   (setq dirvish-quick-access-entries
         '(("h" "~/" "Home")
           ("d" "~/Downloads/" "Downloads")
           ("D" "~/Documents/" "Documents")
           ("p" "~/Projects/" "Projects")
-          ("/" "/" "Root"))))
+          ("/" "/" "Root")))
+  (setq dirvish-attributes '(nerd-icons file-time file-size collapse subtree-state vc-state)))
+
+;; --- New additions for instant startup ---
+
+;; For Dirvish: Open it on startup if you want it immediately visible.
+;; This will open a Dired buffer in Dirvish mode.
+(add-hook! 'doom-after-init-hook
+  (lambda ()
+    (unless (daemonp) ; Only open in normal mode, daemon clients can open it manually
+      (when (display-graphic-p) ; Only if a graphical display is available
+        (run-hook-with-args 'dired-initial-directory-hook "~/") ; Or your preferred initial dir
+        (dirvish-mode 1))))) ; Enable dirvish-mode in the initial dired buffer
+
+;; For Vterm: You can start a vterm buffer on startup.
+(add-hook! 'doom-after-init-hook
+  (lambda ()
+    (unless (daemonp) ; Only open in normal mode, daemon clients can open it manually
+      (when (display-graphic-p) ; Only if a graphical display is available
+        (vterm))))) ; This will create a new vterm buffer
+
+;; For Org-mode: Ensure hooks run on startup, especially if you open an Org file
+;; or use org-agenda as your dashboard.
+;; Your `ar/org-setup-hook` is already good for when an org file is opened.
+;; If you want org-agenda to be your initial view, you can configure doom-dashboard.
+(after! doom-dashboard
+  (setq doom-dashboard-banner-file "~/.config/doom/banner.png") ; Keep your banner
+  (setq doom-dashboard-menu-sections
+        '(
+          ;; Your existing sections...
+          (recents "Recent Files" ?r)
+          (projects "Projects" ?p)
+          (bookmarks "Bookmarks" ?b)
+          (agenda "Org Agenda" ?a (lambda () (org-agenda nil "o"))) ; Add Org Agenda
+          (nil "Doom Emacs" nil) ; Separator
+          (nil "Quick Access" nil) ; Separator
+          (nil "Help" nil) ; Separator
+          (nil "Quit" ?q))) ; Quit option
+          
+  ;; Set Org Agenda as the default dashboard view
+  (setq doom-dashboard-startup-hook '(org-agenda nil "o")))
+
+
+;; For PDF-tools: PDF-tools itself doesn't "start" instantly like a mode.
+;; It activates when you open a PDF file. Your `after! pdf-tools` block
+;; correctly sets up the `pdf-view-mode-hook`, which will run when a PDF is opened.
+;; No further action is needed here for "instant start" on Emacs launch,
+;; as it's a file-type specific tool.
+
+;; --- End new additions ---
+
 
 (defun ar/org-font-setup ()
   ;; Set faces for heading levels
@@ -377,18 +414,18 @@
   (setq org-todo-keywords
         '((sequence "☛ TODO(t)" "⚡ NEXT(n)" "🔄 PROG(p)" "⏳ WAIT(w@/!)" "|" "✅ DONE(d!)" "❌ CANCELLED(c@)")
           (sequence "🎯 GOAL(G)" "🚀 ACTIVE(A)" "⏸ PAUSED(x)" "|" "🏆 ACHIEVED(a)" "🚫 DROPPED(X)")))
-(setq org-todo-keyword-faces
-      '(("☛ TODO"      . (:foreground "#f7768e" :weight bold))
-        ("⚡ NEXT"      . (:foreground "#ff9e64" :weight bold))
-        ("🔄 PROG"      . (:foreground "#73daca" :weight bold))
-        ("⏳ WAIT"      . (:foreground "#bb9af7" :weight bold))
-        ("✅ DONE"      . (:foreground "#9ece6a" :weight bold))
-        ("❌ CANCELLED" . (:foreground "#565f89" :weight bold))
-        ("🎯 GOAL"      . (:foreground "#7dcfff" :weight bold))
-        ("🚀 ACTIVE"    . (:foreground "#ff9e64" :weight bold))
-        ("⏸ PAUSED"    . (:foreground "#565f89" :weight bold))
-        ("🏆 ACHIEVED"  . (:foreground "#2ac3de" :weight bold))
-        ("🚫 DROPPED"   . (:foreground "#565f89" :weight bold)))))
+ (setq org-todo-keyword-faces
+       '(("☛ TODO"      . (:foreground "#f7768e" :weight bold))
+         ("⚡ NEXT"      . (:foreground "#ff9e64" :weight bold))
+         ("🔄 PROG"      . (:foreground "#73daca" :weight bold))
+         ("⏳ WAIT"      . (:foreground "#bb9af7" :weight bold))
+         ("✅ DONE"      . (:foreground "#9ece6a" :weight bold))
+         ("❌ CANCELLED" . (:foreground "#565f89" :weight bold))
+         ("🎯 GOAL"      . (:foreground "#7dcfff" :weight bold))
+         ("🚀 ACTIVE"    . (:foreground "#ff9e64" :weight bold))
+         ("⏸ PAUSED"    . (:foreground "#565f89" :weight bold))
+         ("🏆 ACHIEVED"  . (:foreground "#2ac3de" :weight bold))
+         ("🚫 DROPPED"   . (:foreground "#565f89" :weight bold)))))
 
 (after! org-modern
   (setq org-modern-star '("◉" "○" "◈" "◇" "◆" "▷")
@@ -879,14 +916,14 @@
 (after! flycheck
   ;; Set `pylint` as the default checker. While Doom often defaults to this,
   ;; being explicit guarantees the desired behavior.
-  (flycheck-add-next-checker 'python-pylint 'python-flake8 :append)
+  (flycheck-add-next-checker 'python-pylint 'python-flake8 :append))
 
   ;; You can customize pylint arguments here. For example, to load a specific
   ;; configuration file or disable certain checks globally.
   ;; (setq flycheck-pylintrc ".pylintrc")
   ;; Example: Disable common "missing docstring" warnings
   ;; (setq flycheck-pylint-args '("--disable=C0114,C0115,C0116")))
-)
+
 
 (after! dap-python
   ;; Set the debugger to `debugpy`. This is the default in the latest `dap-mode`
@@ -905,8 +942,8 @@
          :justMyCode t)) ; Set to nil to step into library code
 
   ;; If you use a different terminal emulator with vterm, you can specify it.
-  (setq dap-python-terminal-kind "kitty")
-)
+  (setq dap-python-terminal-kind "kitty"))
+
 
 (map! :leader
       :map python-mode-map
