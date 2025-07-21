@@ -795,6 +795,80 @@
 
 (setq forge-owned-accounts '(("aahsnr")))
 
+(after! python
+  ;; Set your preferred Python interpreter. For project-specific environments,
+  ;; it is highly recommended to use the `:tools direnv` module, which will
+  ;; handle this automatically.
+  (setq python-shell-interpreter "python3")
+
+  ;; Set the standard indentation to 4 spaces, per PEP 8.
+  (setq python-indent-offset 4)
+  ;; This ensures indentation is consistent for `python-mode` and `python-ts-mode`.
+  (setq-default tab-width 4
+                python-indent-offset 4))
+
+(after! apheleia
+  (setf (alist-get 'python-mode apheleia-formatters) '(black))
+  (setf (alist-get 'python-ts-mode apheleia-formatters) '(black)))
+
+(after! flycheck
+  ;; Set `pylint` as the default checker. While Doom often defaults to this,
+  ;; being explicit guarantees the desired behavior.
+  (flycheck-add-next-checker 'python-pylint 'python-flake8 :append)
+
+  ;; You can customize pylint arguments here. For example, to load a specific
+  ;; configuration file or disable certain checks globally.
+  ;; (setq flycheck-pylintrc ".pylintrc")
+  ;; Example: Disable common "missing docstring" warnings
+  ;; (setq flycheck-pylint-args '("--disable=C0114,C0115,C0116")))
+)
+
+(after! dap-python
+  ;; Set the debugger to `debugpy`. This is the default in the latest `dap-mode`
+  ;; but is set here for clarity and to override any older defaults.
+  (setq dap-python-debugger 'debugpy)
+
+  ;; Define a debug template to easily launch the current Python file.
+  ;; This will appear in the `dap-hydra` menu (SPC d r) or when running `dap-debug`.
+  (dap-register-debug-template
+   "Python :: Launch Current File"
+   (list :type "python"
+         :request "launch"
+         :name "Launch File"
+         :program "${file}"
+         :console "integratedTerminal"
+         :justMyCode t)) ; Set to nil to step into library code
+
+  ;; If you use a different terminal emulator with vterm, you can specify it.
+  (setq dap-python-terminal-kind "kitty")
+)
+
+(map! :leader
+      :map python-mode-map
+      :prefix ("d" . "debug")
+      "d" '(dap-debug :wk "Debug")
+      "t" '(dap-debug-last :wk "Debug Last")
+      "q" '(dap-disconnect :wk "Disconnect")
+      "b" '(dap-toggle-breakpoint :wk "Toggle Breakpoint")
+      "B" '(dap-condition-breakpoint :wk "Conditional Breakpoint")
+      "c" '(dap-continue :wk "Continue")
+      "n" '(dap-next :wk "Next")
+      "i" '(dap-step-in :wk "Step In")
+      "o" '(dap-step-out :wk "Step Out")
+      "r" '(dap-hydra :wk "Hydra Menu"))
+
+(map! :leader
+      :map python-mode-map
+      :prefix ("c" . "code")
+      "f" '(+format/buffer :wk "Format Buffer")
+      "r" '(lsp-rename :wk "Rename Symbol")
+      "a" '(lsp-execute-code-action :wk "Code Actions")
+      "d" '(lsp-find-definition :wk "Go to Definition")
+      "D" '(lsp-find-declaration :wk "Go to Declaration")
+      "I" '(lsp-find-implementation :wk "Go to Implementation")
+      "R" '(lsp-find-references :wk "Find References")
+      "h" '(lsp-describe-thing-at-point :wk "Describe at Point"))
+
 (use-package! feature-mode
   :mode "\\.feature$")
 
