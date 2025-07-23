@@ -61,7 +61,7 @@
 (setq doom-theme 'catppuccin)
 #+end_src
 
-** Solair Mode
+** Solaire Mode
 #+begin_src emacs-lisp
 ;; (custom-set-faces
 ;;  '(solaire-default-face ((t (:background "#232634"))))) ; Macchiato Crust
