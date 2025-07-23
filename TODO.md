@@ -9,11 +9,8 @@
 
 # All tasks must be done in the given order
 
-- **Next Tasks**: 
-1. Update dired and dirvish from dirvish.el 
-
-2. Update smartparens if not already.
-3. Finish copying configurations, if necessary, from the example configs above.
+- **Next Tasks**:
+- [ ] Add necessary LaTeX export stuff from elken-doom
 
 -   [ ] **Make sure the following packages are working org source code
     blocks, first by manually checking, then adding if neccessary**
