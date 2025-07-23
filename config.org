@@ -307,6 +307,36 @@
    '(sp-show-pair-mismatch-face ((t (:background "#ed8796" :foreground "#181926" :weight bold))))))
 #+end_src
 
+** Pulsar
+#+begin_src emacs-lisp
+(use-package! pulsar
+  :config
+  ;; Enable pulsar globally for visual feedback on various actions.
+  ;; This ensures Pulsar's effects are active by default.
+  (pulsar-global-mode 1)
+  (setq pulsar-delay 0.05    ; Short delay for a snappier feel
+        pulsar-iterations 5) ; Fewer iterations for a subtle effect
+  (setq pulsar-autojump t
+        pulsar-autojump-delay 0.1)
+
+  (setq pulsar-highlight-region t
+        pulsar-pulse-region-functions pulsar-pulse-region-common-functions)
+  (setq pulsar-blink-line t)
+  (setq pulsar-recenter t)
+
+  (setq pulsar-match-paren t)
+  (setq pulsar-autoscroll t)
+
+  ;; --- Catppuccin Macchiato Theme---
+  (custom-set-faces
+   '(pulsar-face-autojump ((t (:background "#363a4f"))))
+   '(pulsar-face-highlight-region ((t (:background "#f4dbd6" :extend t))))
+   '(pulsar-face-blink-line ((t (:background "#a6da95"))))
+   '(pulsar-face-recenter ((t (:background "#eed49f"))))
+   '(pulsar-face-match-paren ((t (:background "#c6a0f6"))))
+   '(pulsar-face-autoscroll ((t (:background "#f5a97f"))))))
+#+end_src
+
 * Completion
 ** Vertico
 #+begin_src emacs-lisp

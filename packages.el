@@ -11,6 +11,8 @@
 ;; Editor/Evil
 (package! evil-goggles)
 (package! evil-escape)
+(package! pulsar)
+(package! jinx)
 
 ;; Org, Roam, LaTeX, Citation
 (package! org-roam-ui)
@@ -23,9 +25,6 @@
 (package! laas)
 (package! ox-chameleon :recipe (:host github :repo "tecosaur/ox-chameleon"))
 (package! engrave-faces :recipe (:host github :repo "tecosaur/engrave-faces"))
-
-;; Spell Checking
-(package! jinx)
 
 ;; Completion & Snippets
 (package! consult-yasnippet)
@@ -42,6 +41,7 @@
 ;; Ignored Packages
 (package! hydra :ignore t)
 (package! dape :ignore t)
+(package! drag-stuff :ignore t)
 (package! helm-bibtex :ignore t)
 (package! org-yt :ignore t)
 

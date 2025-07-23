@@ -10,7 +10,13 @@
 # All tasks must be done in the given order
 
 - **Next Tasks**:
-- [ ] Add necessary LaTeX export stuff from elken-doom
+- [ ] **Add necessary LaTeX export stuff from elken-doom**
+- [ ] **Org Modern TODO items has weird graphics issues. Use hl-todo instead**
+- [ ] **Check DT's doom config for color-coded todo keywords**
+- [ ] **Buffer Management with ibuffer and bufler**
+- [ ] **Treemacs**
+- [ ] **Git with treemacs**
+
 
 -   [ ] **Make sure the following packages are working org source code
     blocks, first by manually checking, then adding if neccessary**
@@ -19,40 +25,18 @@
     -   Eglot, eldoc, dape, flymake
     -   Alphaelia
 
+-   [ ] **Setup word-wrap in specific modes**
+
 -   [ ] **Adapt elken's org-capture configuration into mine**
 
--   [ ] **Replace lsp-mode with eglot & eglot-booster**
-
--   [ ] **Replace dap-mode with dape**
-
--   [ ] **Replace flycheck with flymake**
-
--   [ ] **Add consult-flymake**
 
 -   [ ] **Add toggle for dirvish, not dirvish side**
 
-
--   [ ] Fix smartparens and rainbow delimiters
-
--   [ ] **Setup global word-wrap**
-
--   [ ] **Enable RPM after everything is done**
-
 -   [x] **Evil**
-
--   [x] **Buffer Management with ibuffer and bufler**
 
 -   [ ] **Keybindings**
 
--   [ ] **Delimiters with smartparens and delimiters**
-
--   [ ] **Treemacs**
-
--   [ ] **Git with treemacs**
-
--   [x] **Treemacs toggle**
-
--   [x] **Dired**
+-   [x] **Delimiters with smartparens and delimiters**
 
 -   [x] **PDF Tools**
 
@@ -62,16 +46,9 @@
 
 -   [x] **Solaire Mode**
 
--   [x] **Alphaelia as the Formatter**
-
--   [x] **Doom Modeline**
-
--   [x] **Recent Files**
-
 -   [x] **Savehist**-
 
 - [ ] **Add org habit to org config**
-
 
 -   [ ] **Window Management**
 
@@ -87,7 +64,7 @@
 
 -   [ ] **Helpful**
 
--   [ ] **Pulsar**
+-   [x] **Pulsar**
 
 -   [ ] **Casual**
 
@@ -109,11 +86,9 @@
         complete org-roam from org-roam.md and compared it with the
         incomplete claude.ai configuration\*
 
--   [ ] **LaTeX**: - \[ \] **Python**
+-   [ ] **LaTeX**:
 
 -   [ ] **Imenu**
-
--   [ ] **Org**:Check DT\'s doom config for color-coded todo keywords
 
 -   [ ] **Ligatures and Unicode that mimics doom emacs**
 
@@ -126,8 +101,6 @@
 -   [X] **Smartparens**
 
 -   [ ] **EasySession**
-
--   [x] **ZZZ-to-char**
 
 -   [ ] **tldr**
 
@@ -157,6 +130,19 @@
 -   [ ] **Rainbow Delimiters**
 -   [ ] **Smartparens**
 -   [ ] **Aggressive Indent**
+
+
+______
+# Using Built-in and Minimal Packages
+
+-   [ ] **Replace lsp-mode with eglot & eglot-booster**
+
+-   [ ] **Replace dap-mode with dape**
+
+-   [ ] **Replace flycheck with flymake**
+
+-   [ ] **Add consult-flymake**
+
 
 ------------------------------------------------------------------------
 
