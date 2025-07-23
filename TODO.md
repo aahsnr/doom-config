@@ -3,7 +3,7 @@
 - [ ] https://github.com/tecosaur/emacs-config/blob/master/config.org 
 - [ ] https://github.com/hieutkt/dotfiles/tree/main/emacs/.doom.d
 - [x] https://github.com/elken/doom
-- [ ] https://joshblais.com/posts/my-literate-doom-emacs-config/
+- [x] https://joshblais.com/posts/my-literate-doom-emacs-config/
 - [ ] https://github.com/michaelneuper/doom
 
 
@@ -49,7 +49,7 @@
 
 -   [ ] **Delimiters with smartparens and delimiters**
 
--   [x] **Treemacs**
+-   [ ] **Treemacs**
 
 -   [ ] **Git with treemacs**
 
@@ -71,18 +71,16 @@
 
 -   [x] **Recent Files**
 
--   [x] **Savehist**
+-   [x] **Savehist**-
+
+- [ ] **Add org habit to org config**
+
 
 -   [ ] **Window Management**
 
 -   [x] **Avy: Complete the configuration from avy.md**
 
 -   [x] **Snippets: yasnippet + yasnippet-capf + consult-yasnippet**
-
--   [x] **Flyspell with hunspell backend** \[ Make sure flyspell is
-    disabled for certain unnecessay parts of the config. In the
-    org-mode, disable it in the headlines and inside the org source code
-    blocks \]
 
 -   [x] **Move-Text**
 
@@ -116,7 +114,7 @@
 
 -   [ ] **LaTeX**: - \[ \] **Python**
 
--   [x] **Imenu**
+-   [ ] **Imenu**
 
 -   [ ] **Org**:Check DT\'s doom config for color-coded todo keywords
 
@@ -126,11 +124,9 @@
 
 -   [ ] **Crux**
 
--   [x] **Colorful Mode**
+-   [X] **Rainbow-Delimiters**
 
--   [ ] **Rainbow-Delimiters**
-
--   [ ] **Smartparens**
+-   [X] **Smartparens**
 
 -   [ ] **EasySession**
 

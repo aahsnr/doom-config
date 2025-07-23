@@ -323,6 +323,18 @@
         consult-ripgrep-args "rg --null --line-buffered --color=never --smart-case --no-heading --line-number --hidden --glob '!.git/'"))
 #+end_src
 
+** Enhanced directory navigation
+#+begin_src emacs-lisp
+;; Enhanced directory navigation
+(use-package! consult-dir
+  :bind
+  (("C-x C-d" . consult-dir)
+   :map vertico-map
+   ("C-x C-d" . consult-dir)
+   ("C-x C-j" . consult-dir-jump-file)))
+
+#+end_src
+
 ** Marginalia - Files Improvement
 #+begin_src emacs-lisp
 (after! marginalia
@@ -540,6 +552,57 @@ Embark additions to improve various vc operations
           ("D" "~/Documents/" "Documents")
           ("p" "~/Projects/" "Projects")
           ("/" "/" "Root"))))
+#+end_src
+
+** GUI File Management
+#+begin_src emacs-lisp
+(defun my/dired-copy-file-directory ()
+  "Copy directory of file at point and switch to workspace 2"
+  (interactive)
+  (let ((file (dired-get-filename)))
+    ;; Copy directory
+    (call-process "~/.config/scripts/upload-helper.sh" nil 0 nil file)
+    ;; Switch workspace using shell command (like your working binding)
+    (shell-command "hyprctl dispatch workspace 2")
+    (message "File's directory copied, switched to workspace 2")))
+
+;; Bind to "yu"
+(after! dired
+  (map! :map dired-mode-map
+        :n "yu" #'my/dired-copy-file-directory))
+
+(after! dirvish
+  (map! :map dirvish-mode-map
+        :n "yu" #'my/dired-copy-file-directory))
+
+;; Open file manager in place dirvish/dired
+(defun open-thunar-here ()
+  "Open thunar in the current directory shown in dired/dirvish."
+  (interactive)
+  (let ((dir (cond
+              ;; If we're in dired mode
+              ((derived-mode-p 'dired-mode)
+               default-directory)
+              ;; If we're in dirvish mode (dirvish is derived from dired)
+              ((and (featurep 'dirvish)
+                    (derived-mode-p 'dired-mode)
+                    (bound-and-true-p dirvish-directory))
+               (or (bound-and-true-p dirvish-directory) default-directory))
+              ;; Fallback for any other mode
+              (t default-directory))))
+    (message "Opening thunar in: %s" dir)  ; Helpful for debugging
+    (start-process "thunar" nil "thunar" dir)))
+;; Bind it to Ctrl+Alt+f in both dired and dirvish modes
+(with-eval-after-load 'dired
+  (define-key dired-mode-map (kbd "C-M-f") 'open-thunar-here))
+;; For dirvish, we need to add our binding to its special keymap if it exists
+(with-eval-after-load 'dirvish
+  (if (boundp 'dirvish-mode-map)
+      (define-key dirvish-mode-map (kbd "C-M-f") 'open-thunar-here)
+    ;; Alternative approach if dirvish uses a different keymap system
+    (add-hook 'dirvish-mode-hook
+              (lambda ()
+                (local-set-key (kbd "C-M-f") 'open-thunar-here)))))
 #+end_src
 
 * Org Mode
@@ -1353,10 +1416,61 @@ Lisp programs can force the template by setting KEYS to a string."
 #+end_src
 
 * General Programming
+** LSP Mode
+#+begin_src emacs-lisp
+(after! lsp-mode
+  (setq lsp-idle-delay 0.5
+        lsp-log-io nil
+        lsp-completion-provider :capf
+        lsp-enable-file-watchers nil
+        lsp-enable-folding nil
+        lsp-enable-text-document-color nil
+        lsp-enable-on-type-formatting nil
+        lsp-enable-snippet nil
+        lsp-enable-symbol-highlighting nil
+        lsp-enable-links nil))
+
+
+;; LSP UI settings for better performance
+(after! lsp-ui
+  (setq lsp-ui-doc-enable t
+        lsp-ui-doc-position 'at-point
+        lsp-ui-doc-max-height 8
+        lsp-ui-doc-max-width 72
+        lsp-ui-doc-show-with-cursor t
+        lsp-ui-doc-delay 0.5
+        lsp-ui-sideline-enable nil
+        lsp-ui-peek-enable t))
+#+end_src
+
+** Dap Mode
 Language Specific Settings are done in their respective sections, and programming setup is already by doom modules in init.el. So anything here is just bonus.
 #+begin_src emacs-lisp
 (after! dap-mode
+   ;; Remove problematic hooks
+  (remove-hook 'dap-stopped-hook 'dap-ui-repl-toggle)
+  (remove-hook 'dap-session-created-hook 'dap-ui-mode)
   (setq dap-ui-variable-length 200))
+#+end_src
+
+
+** Projectile
+#+begin_src emacs-lisp
+(after! projectile
+  (setq projectile-enable-caching t)
+  (setq projectile-indexing-method 'hybrid))
+#+end_src
+
+** Workspaces
+#+begin_src emacs-lisp
+(after! persp-mode
+  ;; Auto-save workspaces when Emacs exits
+  (setq persp-auto-save-opt 1)
+  ;; Save all workspace info including window configurations
+  (setq persp-set-last-persp-for-new-frames nil)
+  (setq persp-reset-windows-on-nil-window-conf nil)
+  ;; Load workspaces automatically on startup
+  (setq persp-auto-resume-time -1))
 #+end_src
 
 * Python
@@ -1452,10 +1566,17 @@ configures it for Python using `debugpy`.
       "h" '(lsp-describe-thing-at-point :wk "Describe at Point"))
 #+end_src
 
+* Docker
+#+begin_src emacs-lisp
+(setq docker-command "podman")
+(setq docker-compose-command "podman-compose")
+#+end_src
+
 * Random Keybindings
 #+begin_src emacs-lisp
 (map! :after evil :gnvi "C-f" #'consult-line)
 #+end_src
+
 * Misc
 ** Cucumber
 
