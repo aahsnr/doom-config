@@ -2,7 +2,7 @@
 - [ ] https://github.com/ArtemSmaznov/dotfiles-doom-emacs.git 
 - [ ] https://github.com/tecosaur/emacs-config/blob/master/config.org 
 - [ ] https://github.com/hieutkt/dotfiles/tree/main/emacs/.doom.d
-- [ ] https://github.com/elken/doom
+- [x] https://github.com/elken/doom
 - [ ] https://joshblais.com/posts/my-literate-doom-emacs-config/
 - [ ] https://github.com/michaelneuper/doom
 
@@ -11,6 +11,7 @@
 
 - **Next Tasks**: 
 1. Update dired and dirvish from dirvish.el 
+
 2. Update smartparens if not already.
 3. Finish copying configurations, if necessary, from the example configs above.
 

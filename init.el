@@ -37,8 +37,8 @@
        doom                ; what makes DOOM look the way it does
        doom-dashboard      ; a nifty splash screen for Emacs
        ;;doom-quit         ; DOOM quit-message prompts when you quit Emacs
-       (emoji +unicode)    ; 🙂
-       ;;hl-todo           ; highlight TODO/FIXME/NOTE/DEPRECATED/HACK/REVIEW
+       ;;(emoji +unicode)    ; 🙂
+       hl-todo           ; highlight TODO/FIXME/NOTE/DEPRECATED/HACK/REVIEW
        indent-guides       ; highlighted indent columns
        (ligatures          
         +extra)
@@ -50,8 +50,8 @@
        (popup 
         +all
         +defaults)
-       ;;(smooth-scroll
-       ;; +interpolate)     ; So smooth you won't believe it's not butter
+       (smooth-scroll
+        +interpolate)     ; So smooth you won't believe it's not butter
        ;;tabs
        (treemacs
         +lsp)

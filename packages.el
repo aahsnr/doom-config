@@ -8,7 +8,7 @@
 (package! nerd-icons)
 (package! rainbow-delimiters)
 
-;; Evil
+;; Editor/Evil
 (package! evil-goggles)
 (package! evil-escape)
 
