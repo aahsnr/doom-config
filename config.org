@@ -149,23 +149,6 @@
       "k" #'evil-previous-visual-line)
 #+end_src
 
-** Integration for searching and inserting snippets
-#+begin_src emacs-lisp
-(use-package! consult-yasnippet
-  :after (consult yasnippet)
-  :config
-  (setq consult-yasnippet-category-icon-alist
-        '((t . "»")
-          ("Emacs Lisp" . "λ")
-          ("Text" . "¶")
-          ("Org" . "★")
-          ("Python" . "🐍"))))
-
-(map! :leader
-      :desc "Search snippets" "s y" #'consult-yasnippet)
-
-#+end_src
-
 ** Vterm
 #+begin_src emacs-lisp
 (setq vterm-always-compile-module t)
@@ -391,6 +374,29 @@
               (set-window-configuration c))))))))
 
 (map! :leader :n :desc "Open heading in literate config" "f o" #'+literate-jump-heading)
+#+end_src
+
+** Integration for searching and inserting snippets
+#+begin_src emacs-lisp
+(use-package! consult-yasnippet
+  :after (consult yasnippet)
+  :config
+  (setq consult-yasnippet-category-icon-alist
+        '((t . "»")
+          ("Emacs Lisp" . "λ")
+          ("Text" . "¶")
+          ("Org" . "★")
+          ("Python" . "🐍"))))
+
+(map! :leader
+      :desc "Search snippets" "s y" #'consult-yasnippet)
+#+end_src
+
+** embark-vc
+Embark additions to improve various vc operations
+#+begin_src emacs-lisp
+(use-package! embark-vc
+  :after embark)
 #+end_src
 
 * PDF Tools
@@ -975,10 +981,6 @@ Lisp programs can force the template by setting KEYS to a string."
    (e.g., `~/org/roam/bibliography.bib`)
 3. This configuration points all Emacs tools to that single, auto-syncing file.
 
-*** Directory
-#+begin_src emacs-lisp
-#+end_src
-
 *** Citar Configuration
 #+begin_src emacs-lisp
 (after! citar
@@ -996,9 +998,9 @@ Lisp programs can force the template by setting KEYS to a string."
   (citar-embark-mode)
 
   (setq citar-symbols
-          `((file ,(nerd-icons-faicon "nf-fa-file_o" :face 'nerd-icons-red) . " ")
-            (note ,(nerd-icons-faicon "nf-fa-file_text" :face 'nerd-icons-yellow) . " ")
-            (link ,(nerd-icons-octicon "nf-oct-link" :face 'nerd-icons-blue) . " "))))
+        `((file "📄" . " ")
+          (note "📝" . " ")
+          (link "🔗" . " "))))
 #+end_src
 
 *** Org Roam BibTeX for Note Taking
@@ -1384,13 +1386,6 @@ configures it for Python using `debugpy`.
 #+begin_src emacs-lisp
 (use-package! systemd
   :mode "\\.service$")
-#+end_src
-
-** RPM Spec
-
-#+begin_src emacs-lisp
-;; (use-package! rpm-spec-mode
-;;   :mode "\\.spec\\(\\.in\\)?$")
 #+end_src
 
 ** M-x

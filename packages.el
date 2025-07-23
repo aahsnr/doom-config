@@ -30,10 +30,8 @@
 ;; Completion & Snippets
 (package! consult-yasnippet)
 
-;; Citations & LaTeX
 ;; Development & System
 (package! embark-vc)
-(package! multi-vterm)
 (package! feature-mode)
 (package! systemd)
 
@@ -45,3 +43,7 @@
 (package! hydra :ignore t)
 (package! dape :ignore t)
 (package! helm-bibtex :ignore t)
+(package! org-yt :ignore t)
+
+;; Unpin Packages
+(unpin! evil-collection)
