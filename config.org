@@ -1,0 +1,1369 @@
+#+TITLE: Doom Emacs Configuration
+#+AUTHOR: Ahsanur Rahman 
+#+STARTUP: overview
+#+PROPERTY: :lexical yes
+
+* Initial Setup
+** Lexical binding
+#+begin_src emacs-lisp
+;;; -*- lexical-binding: t; -*-
+#+end_src
+
+** Frame title format
+#+begin_src emacs-lisp
+(setq-default
+ frame-title-format
+ '(:eval (format "[%%b%s] - %s"
+           (if (buffer-modified-p)
+                      " •"
+             "")
+           system-name)))
+#+end_src
+
+** User Setup
+#+begin_src emacs-lisp
+(setq user-full-name "Ahsanur Rahman"
+      user-mail-address "ahsanur041@proton.me")
+#+end_src
+
+** Prefer y-or-n over yes-or-no
+#+begin_src emacs-lisp
+(defalias 'yes-or-no-p 'y-or-n-p)
+#+end_src
+
+* UI and Theming
+** Theming
+#+begin_src emacs-lisp
+;; (use-package doom-themes
+;;   :custom
+;;   (doom-themes-enable-bold t)
+;;   (doom-themes-enable-italic t)
+;;   ;; Ensure treemacs theme is compatible with doom-tokyo-night.
+;;   (doom-themes-treemacs-theme "doom-tokyo-night")
+;;   :config
+;;   ;; Load the doom-tokyo-night theme.
+;;   (load-theme 'doom-tokyo-night t)
+
+;;   (doom-themes-visual-bell-config)
+;;   (doom-themes-treemacs-config)
+;;   (doom-themes-org-config))
+#+end_src
+
+#+begin_src emacs-lisp
+(setq catppuccin-flavor 'macchiato
+      catppuccin-highlight-matches t
+      catppuccin-italic-comments t
+      catppuccin-italic-variables t
+      catppuccin-italic-functions t
+      catppuccin-italic-keywords t)
+
+;; Load the catppuccin theme.
+(setq doom-theme 'catppuccin)
+#+end_src
+
+** Solair Mode
+#+begin_src emacs-lisp
+;; (custom-set-faces
+;;  '(solaire-default-face ((t (:background "#232634"))))) ; Macchiato Crust
+#+end_src
+
+** Fonts
+#+begin_src emacs-lisp
+(setq doom-font (font-spec :family "JetBrainsMono Nerd Font" :size 14.5 :weight 'medium)
+      doom-variable-pitch-font (font-spec :family "JetBrainsMono Nerd Font" :size 14.5)
+      doom-big-font (font-spec :family "JetBrainsMono Nerd Font" :size 26.0))
+
+(setq doom-unicode-font (font-spec :family "JetBrainsMono Nerd Font" :size 14.5))
+
+(add-hook! 'doom-after-init-hook
+  (defun +my/setup-font-faces ()
+    (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
+    (set-face-attribute 'font-lock-keyword-face nil :slant 'italic)))
+#+end_src
+
+** Lines
+#+begin_src emacs-lisp
+(setq-default line-spacing 0.00)
+
+(add-hook! '(org-mode-hook term-mode-hook shell-mode-hook eshell-mode-hook)
+           #'(lambda () (display-line-numbers-mode -1)))
+#+end_src
+
+** Dashboard
+#+begin_src emacs-lisp
+(setq +doom-dashboard-banner-padding '(0 . 2))
+(setq +doom-dashboard-banner-file "~/.config/doom/banner.png")
+#+end_src
+
+** Which Key
+#+begin_src emacs-lisp
+(setq which-key-allow-multiple-replacements t)
+
+(after! which-key
+  (require 'nerd-icons)
+  (let ((evil-icon (nerd-icons-devicon "nf-dev-vim" :face '(:foreground "#a6e3a1" :weight 'bold) :v-adjust -0.1)))
+    (pushnew!
+     which-key-replacement-alist
+     '(("" . "\\`+?evil[-:]?\\(?:a-\\)?\\(.*\\)") . (nil . ,(concat evil-icon "  \\1")))
+     '(("\\`g s" . "\\`evilem--?motion-\\(.*\\)") . (nil . ,(concat evil-icon "  \\1"))))))
+
+#+end_src
+
+** Modeline
+#+begin_src emacs-lisp
+(after! doom-modeline
+  (setq doom-modeline-buffer-file-name-style 'truncate-upto-project
+        doom-modeline-display-buffer-encoding nil
+        doom-modeline-display-minor-modes nil))
+#+end_src
+
+* Editor & Evil
+** Core Evil
+#+begin_src emacs-lisp
+(setq evil-split-window-below t
+      evil-vsplit-window-right t
+      evil-want-fine-undo t)
+#+end_src
+
+** Evil Theming
+#+begin_src emacs-lisp
+(setq evil-normal-state-cursor `(box "#f4dbd6")
+      evil-insert-state-cursor `(bar "#c6a0f6")
+      evil-visual-state-cursor `(hollow "#f4dbd6"))
+#+end_src
+
+** Evil Escape
+#+begin_src emacs-lisp
+(after! evil-escape
+  (setq evil-escape-key-sequence "jk"
+        evil-escape-delay 0.2
+        evil-escape-excluded-modes '(dired-mode)))
+#+end_src
+
+** Yank/Change operations
+#+begin_src emacs-lisp
+(after! evil-goggles
+  (setq evil-goggles-duration 0.1))
+#+end_src
+
+** Move by visual lines, not logical lines
+#+begin_src emacs-lisp
+(map! :map evil-normal-state-map
+      "j" #'evil-next-visual-line
+      "k" #'evil-previous-visual-line)
+#+end_src
+
+** Integration for searching and inserting snippets
+#+begin_src emacs-lisp
+
+(use-package! consult-yasnippet
+  :after (consult yasnippet)
+  :config
+  (require 'nerd-icons)
+  (setq consult-yasnippet-category-icon-alist
+        `((t . ,(concat (nerd-icons-faicon "nf-fa-puzzle_piece" :face '(:foreground "#c6a0f6")) " »"))
+          ("Emacs Lisp" . ,(concat (nerd-icons-devicon "nf-dev-emacs" :face '(:foreground "#c6a0f6")) " λ"))
+          ("Text" . ,(concat (nerd-icons-faicon "nf-fa-text_height" :face '(:foreground "#cad3f5")) " ¶"))
+          ("Org" . ,(concat (nerd-icons-sucicon "nf-custom-orgmode" :face '(:foreground "#a6da95")) " ★"))
+          ("Python" . ,(concat (nerd-icons-devicon "nf-dev-python" :face '(:foreground "#8aadf4")) " 🐍"))))
+
+(map! :leader
+      :desc "Search snippets" "s y" #'consult-yasnippet))
+#+end_src
+
+** Vterm
+#+begin_src emacs-lisp
+(setq vterm-always-compile-module t)
+;; Kill buffer on emacs exit
+(setq vterm-kill-buffer-on-exit t)
+(setq vterm-shell "/usr/bin/zsh")
+
+;; Prevent kill on closing emacs frame
+(defun +my/vterm-prevent-kill-on-frame-close-query ()
+  "Prevent killing vterm buffers when closing a frame in daemon mode."
+  (if (and (daemonp) (eq major-mode 'vterm-mode))
+      ;; If in daemon mode and it's a vterm buffer, prevent the kill query
+      ;; and keep the buffer alive in the daemon.
+      nil
+    ;; Otherwise, allow default kill query behavior.
+    t))
+
+;; Add the function to the `kill-buffer-query-functions` hook.
+(add-hook 'kill-buffer-query-functions #'+my/vterm-prevent-kill-on-frame-close-query)
+
+;; Force kill vterm buffer
+(defun +my/vterm-force-kill-current-buffer ()
+  (interactive)
+  (when (eq major-mode 'vterm-mode)
+    (kill-buffer (current-buffer) t)
+    (message "Vterm buffer killed forcefully.")))
+
+(map! :leader
+      :desc "Toggle vterm locally"  "v t" #'+vterm/toggle
+      :desc "Open vterm buffer locally" "v T" #'+vterm/here
+      :desc "Force kill current vterm buffer" "o k" #'+my/vterm-force-kill-current-buffer)
+#+end_src
+
+** Spell Checking
+#+begin_src emacs-lisp
+(use-package! jinx
+  :defer t
+  :hook ((text-mode . jinx-mode)
+         ;;(prog-mode . jinx-mode) ; Also useful for checking comments/strings in code
+         (org-mode . jinx-mode)
+         (markdown-mode . jinx-mode)
+         (git-commit-mode . jinx-mode))
+  :bind (("M-$" . jinx-correct)
+         ("C-M-$" . jinx-languages))
+  :init
+  (defvar my-jinx-ignored-words
+    '("DoomEmacs" "Elisp" "EmacsLisp" "use-package" "tecosaur"
+      "jinx-mode" "prog-mode" "conf-mode" "WIP" "regexp" "Ahsanur"
+      "Rahman" "toc" "LaTeX" "cleverparens" "parens"))
+  :config
+  (setq jinx-languages "en_US")
+  (setq jinx-delay 0.3)
+
+  (push `(t . (,(concat "\\<\\(" (mapconcat #'regexp-quote my-jinx-ignored-words "\\|") "\\)\\>")))
+        jinx-exclude-regexps)
+  (push '(org-mode
+          ;; All headline levels
+          org-level-1 org-level-2 org-level-3 org-level-4
+          org-level-5 org-level-6 org-level-7 org-level-8
+          ;; Other Org elements
+          org-document-title
+          org-block
+          org-src-block
+          org-meta-line
+          org-table
+          org-link) ; Ignore URLs in links
+        jinx-exclude-faces)
+  (after! vertico
+    (when (boundp 'vertico-multiform-categories)
+      (add-to-list 'vertico-multiform-categories '(jinx (vertico-grid-annotate . t))))))
+#+end_src
+
+** Rainbow Delimiters
+#+begin_src emacs-lisp
+(use-package! rainbow-delimiters
+  :config
+  ;; Enable rainbow-delimiters mode for programming, Org, and LaTeX modes.
+  (add-hook! '(prog-mode-hook org-mode-hook LaTeX-mode-hook) #'rainbow-delimiters-mode)
+
+  ;; Integrate with `mixed-pitch-mode`
+  (add-hook! 'mixed-pitch-mode-hook
+    (lambda ()
+      (when (or (derived-mode-p 'org-mode) (derived-mode-p 'latex-mode))
+        (rainbow-delimiters-mode))))
+
+  ;; TokyoNight theme Enhanced Contrast
+  (custom-set-faces
+   '(rainbow-delimiters-depth-1-face ((t (:foreground "#b7bdf8"))))
+   '(rainbow-delimiters-depth-2-face ((t (:foreground "#8bd5ca"))))
+   '(rainbow-delimiters-depth-3-face ((t (:foreground "#a6da95"))))
+   '(rainbow-delimiters-depth-4-face ((t (:foreground "#eed49f"))))
+   '(rainbow-delimiters-depth-5-face ((t (:foreground "#f5a97f"))))
+   '(rainbow-delimiters-depth-6-face ((t (:foreground "#ed8796"))))
+   '(rainbow-delimiters-depth-7-face ((t (:foreground "#c6a0f6"))))
+   '(rainbow-delimiters-depth-8-face ((t (:foreground "#91d7e3"))))
+   '(rainbow-delimiters-depth-9-face ((t (:foreground "#8aadf4"))))
+   '(rainbow-delimiters-depth-10-face ((t (:foreground "#a5adce"))))))
+#+end_src
+
+** Smartparens
+#+begin_src emacs-lisp
+(after! smartparens
+  ;; Enable show-pair mode globally for bracket highlighting.
+  (show-smartparens-global-mode 1)
+
+  ;; Catppuccin Macchiato theme colors
+  (custom-set-faces
+   '(sp-show-pair-face ((t (:background "#494d64" :foreground "#b8c0e0" :underline nil))))
+   '(sp-show-pair-match-face ((t (:background "#494d64" :foreground "#b8c0e0" :weight bold))))
+   '(sp-show-pair-mismatch-face ((t (:background "#ed8796" :foreground "#181926" :weight bold))))))
+#+end_src
+
+* Completion
+** Vertico
+#+begin_src emacs-lisp
+(after! vertico
+  (setq vertico-count 10
+        vertico-cycle t))
+#+end_src
+
+** Consult
+#+begin_src emacs-lisp
+(after! consult
+  ;; Use fd and rg for faster searching, from vanilla config
+  (setq consult-find-args "fd --hidden --strip-cwd --type f --color=never"
+        consult-ripgrep-args "rg --null --line-buffered --color=never --smart-case --no-heading --line-number --hidden --glob '!.git/'"))
+#+end_src
+
+** Marginalia - Files Improvement
+#+begin_src emacs-lisp
+(after! marginalia
+  (setq marginalia-censor-variables nil)
+
+  (defadvice! +marginalia--anotate-local-file-colorful (cand)
+    "Just a more colourful version of `marginalia--anotate-local-file'."
+    :override #'marginalia--annotate-local-file
+    (when-let (attrs (file-attributes (substitute-in-file-name
+                                       (marginalia--full-candidate cand))
+                                      'integer))
+      (marginalia--fields
+       ((marginalia--file-owner attrs)
+        :width 12 :face 'marginalia-file-owner)
+       ((marginalia--file-modes attrs))
+       ((+marginalia-file-size-colorful (file-attribute-size attrs))
+        :width 7)
+       ((+marginalia--time-colorful (file-attribute-modification-time attrs))
+        :width 12))))
+
+  (defun +marginalia--time-colorful (time)
+    (let* ((seconds (float-time (time-subtract (current-time) time)))
+           (color (doom-blend
+                   (face-attribute 'marginalia-date :foreground nil t)
+                   (face-attribute 'marginalia-documentation :foreground nil t)
+                   (/ 1.0 (log (+ 3 (/ (+ 1 seconds) 345600.0)))))))
+      ;; 1 - log(3 + 1/(days + 1)) % grey
+      (propertize (marginalia--time time) 'face (list :foreground color))))
+
+  (defun +marginalia-file-size-colorful (size)
+    (let* ((size-index (/ (log10 (+ 1 size)) 7.0))
+           (color (if (< size-index 10000000) ; 10m
+                      (doom-blend 'orange 'green size-index)
+                    (doom-blend 'red 'orange (- size-index 1)))))
+      (propertize (file-size-human-readable size) 'face (list :foreground color)))))
+#+end_src
+
+** Projectile completion fn
+#+begin_src emacs-lisp
+(autoload #'consult--read "consult")
+
+;;;###autoload
+(defun +vertico/projectile-completion-fn (prompt choices)
+  "Given a PROMPT and a list of CHOICES, filter a list of files for
+`projectile-find-file'."
+  (interactive)
+  (consult--read
+   choices
+   :prompt prompt
+   :sort nil
+   :add-history (thing-at-point 'filename)
+   :category 'file
+   :history '(:input +vertico/find-file-in--history)))
+
+(setq projectile-completion-system '+vertico/projectile-completion-fn)
+#+end_src
+
+** Jump to heading
+#+begin_src emacs-lisp
+(defun flatten-imenu-index (index &optional prefix)
+  "Flatten an org-mode imenu index."
+  (let ((flattened '()))
+    (dolist (item index flattened)
+      (let* ((name (propertize (car item) 'face (intern (format "org-level-%d" (if prefix (+ 2 (cl-count ?/ prefix)) 1)))))
+             (prefix (if prefix (concat prefix "/" name) name)))
+        (if (imenu--subalist-p item)
+            (setq flattened (append flattened (flatten-imenu-index (cdr item) prefix)))
+          (push (cons prefix (cdr item)) flattened))))
+    (nreverse flattened)))
+
+;;;###autoload
+(defun +literate-jump-heading ()
+  "Jump to a heading in the literate org file."
+  (interactive)
+  (let* ((+literate-config-file (file-name-concat doom-user-dir "config.org"))
+         (buffer (or (find-buffer-visiting +literate-config-file)
+                     (find-file-noselect +literate-config-file t))))
+    (with-current-buffer buffer
+      (let* ((imenu-auto-rescan t)
+             (org-imenu-depth 8)
+             (index (flatten-imenu-index (imenu--make-index-alist))))
+        (let ((c (current-window-configuration))
+              (result nil))
+          (unwind-protect
+              (progn
+                (switch-to-buffer buffer)
+                (cond
+                 ((modulep! :completion vertico)
+                  (setq result (consult-org-heading)))
+                 (t
+                  (let ((entry (assoc (completing-read "Go to heading: " index nil t) index)))
+                    (setq result entry)
+                    (imenu entry)))))
+            (unless result
+              (set-window-configuration c))))))))
+
+(map! :leader :n :desc "Open heading in literate config" "f o" #'+literate-jump-heading)
+#+end_src
+
+* PDF Tools
+#+begin_src emacs-lisp
+(after! pdf-tools
+  (add-hook! 'pdf-view-mode-hook
+    (defun +my/pdf-view-mode-setup ()
+      (auto-revert-mode 1)
+      (pdf-view-continuous-scroll-mode 1)
+      (pdf-view-midnight-mode 1)
+      (pdf-view-fit-width-to-window)))
+
+  (map! :map pdf-view-mode-map
+        ;; Page Navigation
+        :n "J"       #'pdf-view-next-page
+        :n "K"       #'pdf-view-previous-page
+        :n "gg"      #'pdf-view-first-page
+        :n "G"       #'pdf-view-last-page
+        :n "C-f"     #'pdf-view-scroll-down-or-next-page
+        :n "C-b"     #'pdf-view-scroll-up-or-previous-page
+        ;; Horizontal Scrolling
+        :n "h"       #'pdf-view-scroll-left
+        :n "l"       #'pdf-view-scroll-right
+        ;; Zooming
+        :n "+"       #'pdf-view-scale-up
+        :n "-"       #'pdf-view-scale-down
+        :n "zi"      #'pdf-view-scale-up      ; mnemonic: zoom in
+        :n "zo"      #'pdf-view-scale-down    ; mnemonic: zoom out
+        ;; Fitting Commands
+        :n "="       #'pdf-view-fit-page-to-window
+        :n "zw"      #'pdf-view-fit-width-to-window ; mnemonic: zoom width
+        :n "zh"      #'pdf-view-fit-height-to-window; mnemonic: zoom height
+        ;; History Navigation (like a web browser)
+        :n "C-o"     #'pdf-history-backward
+        :n "C-i"     #'pdf-history-forward
+        ;; Outline (Table of Contents)
+        :n "o"       #'pdf-outline
+        ;; SyncTeX (for LaTeX integration)
+        :n "gs"      #'pdf-sync-forward-search)) ; mnemonic: go source
+
+(after! pdf-tools
+  ;; Set midnight mode colors for PDF viewer.
+  (setq pdf-view-midnight-colors (cons "#24273a" "#cad3f5")) ; Base, Text
+
+  ;; Fix for pdf-view-highlight-face:
+  ;; Modify `pdf-annot-default-annotation-properties` to set the highlight color.
+  (setq pdf-annot-default-annotation-properties
+        (delq niL
+              (cl-loop for (type props) in pdf-annot-default-annotation-properties
+                       collect (cond
+                                ((eq type 'highlight)
+                                 `(highlight (color . "#8aadf4"))) ; Blue for highlight
+                                (t `(,type ,props))))))
+
+  ;; Ensure highlight property is present if it was not initially.
+  (unless (assoc 'highlight pdf-annot-default-annotation-properties)
+    (add-to-list 'pdf-annot-default-annotation-properties '(highlight (color . "#8aadf4")))))
+#+end_src
+
+* File Management
+** Dired
+#+begin_src emacs-lisp
+(after! dired
+  ;; Omit files like in the vanilla config
+  (setq dired-omit-files "^\\.[^.]\\|^#\\|^\\.$\\|^\\.\\.$\\|\\.pyc$\\|\\.o$")
+  (setq dired-listing-switches "-agho --group-directories-first"))
+#+end_src
+
+** Dirvish
+#+begin_src emacs-lisp
+(after! dirvish
+  ;; 1. Customize attributes for a cleaner, yazi-like column view.
+  ;; We display icons, file size, modification time, and git status.
+  (setq dirvish-attributes '(nerd-icons file-size file-time vc-state))
+  ;; 2. Configure a custom header line for more information at a glance.
+  ;; Format: <File Path> <Permissions> [<Total Files>]
+  (setq dirvish-header-line-format " %p %m [%N] ")
+
+  ;; 3. Enable automatic file previews on the right, mimicking yazi's layout.
+  ;; This automatically opens a preview pane for the selected file.
+  (add-hook 'dirvish-mode-hook #'dirvish-peek-mode)
+  (setq dirvish-preview-width 0.4) ; Preview window takes 40% of the frame width
+  (setq dirvish-peek-show-on 'right)
+
+  ;; 4. Define keybindings for yazi-style navigation.
+  (map! :map dirvish-mode-map
+        :n "h" #'dirvish-up-dir          ; Go to parent directory
+        :n "l" #'dirvish-open-dwim       ; Open file or enter directory
+        :n " " #'dirvish-toggle-preview) ; Manually toggle the preview pane
+
+  ;; Set quick access directories from vanilla config
+  (setq dirvish-quick-access-entries
+        '(("h" "~/" "Home")
+          ("d" "~/Downloads/" "Downloads")
+          ("D" "~/Documents/" "Documents")
+          ("p" "~/Projects/" "Projects")
+          ("/" "/" "Root"))))
+#+end_src
+
+* Org Mode
+** Fonts Setup
+#+begin_src emacs-lisp
+(defun ar/org-font-setup ()
+  ;; Set faces for heading levels
+  (dolist (face '((org-level-1 . 1.2)
+                  (org-level-2 . 1.1)
+                  (org-level-3 . 1.05)
+                  (org-level-4 . 1.0)
+                  (org-level-5 . 1.1)
+                  (org-level-6 . 1.1)
+                  (org-level-7 . 1.1)
+                  (org-level-8 . 1.1)))
+    (set-face-attribute (car face) nil :font "JetBrainsMono Nerd Font" :weight 'bold :height (cdr face) :slant 'unspecified))
+
+  ;; Ensure that anything that should be fixed-pitch in Org files appears that way
+  (set-face-attribute 'org-tag nil :foreground nil :inherit '(shadow fixed-pitch) :weight 'bold)
+  (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+#+end_src
+
+** Core Setup
+#+begin_src emacs-lisp
+(defun ar/org-setup-hook ()
+  "Modes to enable on org-mode start"
+  (org-indent-mode)
+  (visual-line-mode 1)
+  (+org-pretty-mode)
+  (ar/org-font-setup))
+
+(after! org
+  (setq org-directory "~/org"
+        org-startup-with-inline-images t
+        org-image-actual-width 600
+        org-use-property-inheritance t
+        org-archive-location "archive/Archive_%s::"
+        org-auto-align-tags nil)
+  (setq org-ellipsis ,(concat " " (nerd-icons-faicon "nf-fa-ellipsis_h" :face '(:foreground "#6e738d")) " "))
+
+  (add-hook! org-mode #'ar/org-setup-hook))
+#+end_src
+
+** Variable Setup
+Useful settings and functions for maintaining modified dates in org files
+#+begin_src emacs-lisp
+(setq enable-dir-local-variables t)
+(defun ar/find-time-property (property)
+  "Find the PROPETY in the current buffer."
+  (save-excursion
+    (goto-char (point-min))
+    (let ((first-heading
+           (save-excursion
+             (re-search-forward org-outline-regexp-bol nil t))))
+      (when (re-search-forward (format "^#\\+%s:" property) nil t)
+        (point)))))
+
+(defun ar/has-time-property-p (property)
+  "Gets the position of PROPETY if it exists, nil if not and empty string if it's undefined."
+  (when-let ((pos (ar/find-time-property property)))
+    (save-excursion
+      (goto-char pos)
+      (if (and (looking-at-p " ")
+               (progn (forward-char)
+                      (org-at-timestamp-p 'lax)))
+          pos
+        ""))))
+
+(defun ar/set-time-property (property &optional pos)
+  "Set the PROPERTY in the current buffer.
+Can pass the position as POS if already computed."
+  (when-let ((pos (or pos (ar/find-time-property property))))
+    (save-excursion
+      (goto-char pos)
+      (if (looking-at-p " ")
+          (forward-char)
+        (insert " "))
+      (delete-region (point) (line-end-position))
+      (let* ((now (format-time-string "<%Y-%m-%d %H:%M>")))
+        (insert now)))))
+
+(add-hook! 'before-save-hook (when (derived-mode-p 'org-mode)
+                               (ar/set-time-property "LAST_MODIFIED")
+                               (ar/set-time-property "DATE_UPDATED")))
+#+end_src
+
+** Org Structure Templates
+#+begin_src emacs-lisp
+(use-package! org-tempo
+  :after org
+  :config
+  (setq org-src-window-setup 'split-window-below
+        org-src-fontify-natively t
+        org-src-tab-acts-natively t)
+  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+  (add-to-list 'org-structure-template-alist '("py" . "src python"))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp")))
+#+end_src
+
+** Use visual-fill to center org text
+#+begin_src emacs-lisp
+(use-package! visual-fill-column
+  :custom
+  (visual-fill-column-width 300)
+  (visual-fill-column-center-text t)
+  :hook (org-mode . visual-fill-column-mode))
+#+end_src
+
+** Prettier pop-up for capture templates
+#+begin_src emacs-lisp
+#+end_src
+
+** Org TODO Keywords
+#+begin_src emacs-lisp
+
+(after! org
+  (require 'nerd-icons)
+  (let* ((n-todo      (nerd-icons-octicon "nf-oct-issue_opened"      :face '(:foreground "#ed8796")))
+         (n-next      (nerd-icons-mdicon "nf-mdi-ray_start_arrow"   :face '(:foreground "#f5a97f")))
+         (n-prog      (nerd-icons-faicon "nf-fa-spinner"            :face '(:foreground "#8bd5ca")))
+         (n-wait      (nerd-icons-mdicon "nf-mdi-timer_sand"        :face '(:foreground "#c6a0f6")))
+         (n-done      (nerd-icons-octicon "nf-oct-issue_closed"     :face '(:foreground "#a6da95")))
+         (n-cancelled (nerd-icons-octicon "nf-oct-skip"             :face '(:foreground "#6e738d")))
+         (n-goal      (nerd-icons-mdicon "nf-mdi-target"            :face '(:foreground "#91d7e3")))
+         (n-active    (nerd-icons-mdicon "nf-mdi-rocket_launch"     :face '(:foreground "#f5a97f")))
+         (n-paused    (nerd-icons-mdicon "nf-mdi-pause_circle"      :face '(:foreground "#6e738d")))
+         (n-achieved  (nerd-icons-mdicon "nf-mdi-trophy"            :face '(:foreground "#7dc4e4")))
+         (n-dropped   (nerd-icons-mdicon "nf-mdi-cancel"            :face '(:foreground "#6e738d"))))
+    (setq org-todo-keywords
+          `((sequence ,(concat n-todo      " ☛ TODO(t)")
+                      ,(concat n-next      " ⚡ NEXT(n)")
+                      ,(concat n-prog      " 🔄 PROG(p)")
+                      ,(concat n-wait      " ⏳ WAIT(w@/!)")
+                      "|"
+                      ,(concat n-done      " ✅ DONE(d!)")
+                      ,(concat n-cancelled " ❌ CANCELLED(c@)"))
+            (sequence ,(concat n-goal      " 🎯 GOAL(G)")
+                      ,(concat n-active    " 🚀 ACTIVE(A)")
+                      ,(concat n-paused    " ⏸ PAUSED(x)")
+                      "|"
+                      ,(concat n-achieved  " 🏆 ACHIEVED(a)")
+                      ,(concat n-dropped   " 🚫 DROPPED(X)"))))
+    (setq org-todo-keyword-faces
+          '(("☛ TODO"      . (:foreground "#ed8796" :weight bold))
+            ("⚡ NEXT"      . (:foreground "#f5a97f" :weight bold))
+            ("🔄 PROG"      . (:foreground "#8bd5ca" :weight bold))
+            ("⏳ WAIT"      . (:foreground "#c6a0f6" :weight bold))
+            ("✅ DONE"      . (:foreground "#a6da95" :weight bold))
+            ("❌ CANCELLED" . (:foreground "#6e738d" :weight bold))
+            ("🎯 GOAL"      . (:foreground "#91d7e3" :weight bold))
+            ("🚀 ACTIVE"    . (:foreground "#f5a97f" :weight bold))
+            ("⏸ PAUSED"    . (:foreground "#6e738d" :weight bold))
+            ("🏆 ACHIEVED"  . (:foreground "#7dc4e4" :weight bold))
+            ("🚫 DROPPED"   . (:foreground "#6e738d" :weight bold))))))
+
+#+end_src
+
+** Org Modern
+#+begin_src emacs-lisp
+(after! org-modern
+  (require 'nerd-icons)
+  (setq org-modern-star '("◉" "○" "◈" "◇" "◆" "▷")
+        org-modern-hide-stars "· "
+        org-modern-list `((43 . ,(concat (nerd-icons-faicon "nf-fa-plus" :face '(:foreground "#89b4fa")) " ➤"))
+                          (45 . ,(concat (nerd-icons-faicon "nf-fa-minus" :face '(:foreground "#ed8796")) " –"))
+                          (42 . ,(concat (nerd-icons-faicon "nf-fa-asterisk" :face '(:foreground "#f9e2af")) " •")))
+        org-modern-table-vertical 1
+        org-modern-table-horizontal 0.1
+        org-modern-block-name `(("src" ,(concat (nerd-icons-faicon "nf-fa-code" :face '(:foreground "#89b4fa")) " »") "«")
+                                ("example" ,(concat (nerd-icons-octicon "nf-oct-beaker" :face '(:foreground "#a6e3a1")) " »") "«")
+                                ("quote" ,(concat (nerd-icons-faicon "nf-fa-quote_left" :face '(:foreground "#cba6f7")) " ❝") "❞"))
+       org-modern-tag-faces
+        `((:foreground "#cad3f5" :weight bold :box (:line-width (1 . -1) :color "#363a4f")))
+        org-modern-checkbox `((todo . ,(concat (nerd-icons-faicon "nf-fa-square_o") " ☐"))
+                              (done . ,(concat (nerd-icons-faicon "nf-fa-check_square_o" :face '(:foreground "#a6da95")) " ☑"))
+                              (cancel . ,(concat (nerd-icons-faicon "nf-fa-minus_square_o" :face '(:foreground "#6e738d")) " ☒"))
+                              (priority . ,(concat (nerd-icons-faicon "nf-fa-flag" :face '(:foreground "#ed8796")) " ⚑"))
+                              (on . "◉")
+                              (off . "○"))))
+
+#+end_src
+
+** Org Appear
+#+begin_src emacs-lisp
+(after! org-appear
+  (setq org-appear-autoemphasis t
+        org-appear-autolinks t
+        org-appear-autosubmarkers t))
+#+end_src
+
+** Org Fragtog
+#+begin_src emacs-lisp
+(use-package! org-fragtog
+  :hook (org-mode . org-fragtog-mode))
+#+end_src
+
+** Org Capture
+*** Doct
+#+begin_src emacs-lisp
+(use-package! doct
+  :defer t
+  :commands (doct))
+#+end_src
+
+*** Prettify
+#+begin_src emacs-lisp
+(defun org-capture-select-template-prettier (&optional keys)
+  "Select a capture template, in a prettier way than default
+Lisp programs can force the template by setting KEYS to a string."
+  (let ((org-capture-templates
+         (or (org-contextualize-keys
+              (org-capture-upgrade-templates org-capture-templates)
+              org-capture-templates-contexts)
+             '(("t" "Task" entry (file+headline "" "Tasks")
+                "* TODO %?\n  %u\n  %a")))))
+    (if keys
+        (or (assoc keys org-capture-templates)
+            (error "No capture template referred to by \"%s\" keys" keys))
+      (org-mks org-capture-templates
+               "Select a capture template\n━━━━━━━━━━━━━━━━━━━━━━━━━"
+               "Template key: "
+               `(("q" ,(concat (nerd-icons-octicon "nf-oct-stop" :face '(:foreground "#ed8796") :v-adjust 0.01) "\tAbort")))))))
+(advice-add 'org-capture-select-template :override #'org-capture-select-template-prettier)
+
+(defun org-mks-pretty (table title &optional prompt specials)
+  "Select a member of an alist with multiple keys. Prettified."
+  (save-window-excursion
+    (let ((inhibit-quit t)
+          (buffer (org-switch-to-buffer-other-window "*Org Select*"))
+          (prompt (or prompt "Select: "))
+          case-fold-search
+          current)
+      (unwind-protect
+          (catch 'exit
+            (while t
+              (setq-local evil-normal-state-cursor (list nil))
+              (erase-buffer)
+              (insert title "\n\n")
+              (let ((des-keys nil)
+                    (allowed-keys '("\C-g"))
+                    (tab-alternatives '("\s" "\t" "\r"))
+                    (cursor-type nil))
+                ;; Populate allowed keys and descriptions keys
+                ;; available with CURRENT selector.
+                (let ((re (format "\\`%s\\(.\\)\\'"
+                                  (if current (regexp-quote current) "")))
+                      (prefix (if current (concat current " ") "")))
+                  (dolist (entry table)
+                    (pcase entry
+                      ;; Description.
+                      (`(,(and key (pred (string-match re))) ,desc)
+                       (let ((k (match-string 1 key)))
+                         (push k des-keys)
+                         ;; Keys ending in tab, space or RET are equivalent.
+                         (if (member k tab-alternatives)
+                             (push "\t" allowed-keys)
+                           (push k allowed-keys))
+                         (insert (propertize prefix 'face 'font-lock-comment-face) (propertize k 'face 'bold) (propertize "›" 'face 'font-lock-comment-face) "  " desc "…" "\n")))
+                      ;; Usable entry.
+                      (`(,(and key (pred (string-match re))) ,desc . ,_)
+                       (let ((k (match-string 1 key)))
+                         (insert (propertize prefix 'face 'font-lock-comment-face) (propertize k 'face 'bold) "   " desc "\n")
+                         (push k allowed-keys)))
+                      (_ nil))))
+                ;; Insert special entries, if any.
+                (when specials
+                  (insert "─────────────────────────\n")
+                  (pcase-dolist (`(,key ,description) specials)
+                    (insert (format "%s   %s\n" (propertize key 'face `(:foreground "#ed8796" :weight bold)) description))
+                    (push key allowed-keys)))
+                ;; Display UI and let user select an entry or
+                ;; a sub-level prefix.
+                (goto-char (point-min))
+                (unless (pos-visible-in-window-p (point-max))
+                  (org-fit-window-to-buffer))
+                (let ((pressed (org--mks-read-key allowed-keys prompt nil)))
+                  (setq current (concat current pressed))
+                  (cond
+                   ((equal pressed "\C-g") (user-error "Abort"))
+                   ((equal pressed "ESC") (user-error "Abort"))
+                   ;; Selection is a prefix: open a new menu.
+                   ((member pressed des-keys))
+                   ;; Selection matches an association: return it.
+                   ((let ((entry (assoc current table)))
+                      (and entry (throw 'exit entry))))
+                   ;; Selection matches a special entry: return the
+                   ;; selection prefix.
+                   ((assoc current specials) (throw 'exit current))
+                   (t (error "No entry available")))))))
+        (when buffer (kill-buffer buffer))))))
+(advice-add 'org-mks :override #'org-mks-pretty)
+#+end_src
+
+*** Org Capture Bin
+#+begin_src emacs-lisp
+(setf (alist-get 'height +org-capture-frame-parameters) 15)
+;; (alist-get 'name +org-capture-frame-parameters) "❖ Capture") ;; ATM hardcoded in other places, so changing breaks stuff
+(setq +org-capture-fn
+      (lambda ()
+        (interactive)
+        (set-window-parameter nil 'mode-line-format 'none)
+        (org-capture)))
+#+end_src
+
+*** Doct Utility Functions
+#+begin_src emacs-lisp
+(defun +doct-icon-declaration-to-icon (declaration)
+  "Convert :icon declaration to icon"
+  (let ((name (pop declaration))
+        (set  (intern (concat "nerd-icons-" (plist-get declaration :set))))
+        (color (plist-get declaration :color))
+        (v-adjust (or (plist-get declaration :v-adjust) 0.01)))
+    (apply set `(,name :face (:foreground ,color) :v-adjust ,v-adjust))))
+
+(defun +doct-iconify-capture-templates (groups)
+  "Add declaration's :icon to each template group in GROUPS."
+  (let ((templates (doct-flatten-lists-in groups)))
+    (setq doct-templates (mapcar (lambda (template)
+                                   (when-let* ((props (nthcdr (if (= (length template) 4) 2 5) template))
+                                               (spec (plist-get (plist-get props :doct) :icon)))
+                                     (setf (nth 1 template) (concat (+doct-icon-declaration-to-icon spec)
+                                                                    "\t"
+                                                                    (nth 1 template))))
+                                   template)
+                                 templates))))
+
+(setq doct-after-conversion-functions '(+doct-iconify-capture-templates))
+#+end_src
+
+*** ☛ TODO Templates
+#+begin_src emacs-lisp
+(after! org-capture
+  (require 'nerd-icons)
+  (setq org-capture-templates
+        (doct
+         `(;; Main Capture Options
+           ("Task" :keys "t"
+            :icon ("nf-oct-checklist" :set "octicon" :color "#ed8796")
+            :file "inbox.org"
+            :headline "Tasks"
+            :template ("* ☛ TODO %?"
+                       "  :PROPERTIES:"
+                       "  :CREATED: %U"
+                       "  :END:"))
+           ("Note" :keys "n"
+            ;; CORRECTED ICON: Replaced nf-mdi-note_text_outline with nf-mdi-note
+            :icon ("nf-mdi-note" :set "mdicon" :color "#f9e2af")
+            :file "inbox.org"
+            :headline "Notes"
+            :template ("* %? :note:"
+                       "  :PROPERTIES:"
+                       "  :CREATED: %U"
+                       "  :END:"))
+           ("Journal" :keys "j"
+            :icon ("nf-mdi-calendar_text" :set "mdicon" :color "#f5c2e7")
+            :file "journal.org"
+            :datetree t
+            :template ("* %U %?"))
+           ("Meeting" :keys "m"
+            :icon ("nf-mdi-account_multiple" :set "mdicon" :color "#89b4fa")
+            :file "inbox.org"
+            :headline "Meetings"
+            :template ("* ⚡ NEXT Meeting: %? :meeting:"
+                       "  :PROPERTIES:"
+                       "  :CREATED: %U"
+                       "  :ATTENDEES:"
+                       "  :END:"
+                       "** Agenda"
+                       "** Notes"
+                       "** Action Items"))
+           ;; Long-term Planning
+           ("Project" :keys "p"
+            :icon ("nf-mdi-rocket_launch" :set "mdicon" :color "#a6e3a1")
+            :file "projects.org"
+            :headline "Projects"
+            :template ("* 🚀 ACTIVE %? :project:"
+                       "  :PROPERTIES:"
+                       "  :CREATED: %U"
+                       "  :GOAL:"
+                       "  :DEADLINE:"
+                       "  :END:"
+                       "** 🎯 Goals"
+                       "** ☛ Tasks"
+                       "*** ☛ TODO Define project scope"
+                       "** 📚 Resources"
+                       "** 📝 Notes"))
+           ("Book" :keys "b"
+            :icon ("nf-mdi-book_open_page_variant" :set "mdicon" :color "#fab387")
+            :file "reading.org"
+            :headline "Reading List"
+            :template ("* ☛ TODO %? :book:read:"
+                       "  :PROPERTIES:"
+                       "  :CREATED: %U"
+                       "  :AUTHOR:"
+                       "  :GENRE:"
+                       "  :RATING:"
+                       "  :END:"
+                       "** Summary"
+                       "** Key Takeaways"
+                       "** Quotes"))
+           ("Goal" :keys "g"
+            :icon ("nf-mdi-flag_checkered" :set "mdicon" :color "#cba6f7")
+            :file "goals.org"
+            :headline "Goals"
+            :template ("* 🎯 GOAL %? :goal:"
+                       "  DEADLINE: %(org-read-date nil nil \"+1y\")"
+                       "  :PROPERTIES:"
+                       "  :CREATED: %U"
+                       "  :END:"
+                       "** Why this goal?"
+                       "** Success criteria"
+                       "** Action steps"
+                       "*** ☛ TODO Break down into smaller tasks"))
+           ;; Protocol links
+           ("Protocol" :keys "P"
+            :icon ("nf-mdi-link_variant" :set "mdicon" :color "#89b4fa")
+            :file "Notes.org"
+            :template ("* ☛ TODO %^{Title}"
+                       "Source: %u"
+                       "#+BEGIN_QUOTE"
+                       "%i"
+                       "#+END_QUOTE"
+                       "%?"))
+           ("Protocol link" :keys "L"
+            :icon ("nf-mdi-link_variant_plus" :set "mdicon" :color "#89b4fa")
+            :file "Notes.org"
+            :template ("* ☛ TODO %?"
+                       "[[%:link][%:description]]"
+                       "Captured on: %U"))))))#+end_src
+
+* Writing
+** Citation and Bibliography
+1. In Zotero, install the "Better BibTeX for Zotero" plugin.
+2. Configure it to auto-export your library to a single .bib file.
+   (e.g., `~/org/roam/bibliography.bib`)
+3. This configuration points all Emacs tools to that single, auto-syncing file.
+
+*** Directory
+#+begin_src emacs-lisp
+#+end_src
+
+*** Citar Configuration
+#+begin_src emacs-lisp
+(after! citar
+  (defvar my-bib-files
+  (list
+   (expand-file-name "roam/bibliography.bib" org-directory) ; Main library from Zotero
+   (expand-file-name "projects/my-project/project.bib" org-directory)) ; A project-specific file
+  "A list of all bibliography files to be used.")
+
+  (setq citar-bibliography (list my-bib-files))
+  (setq citar-notes-paths (list (expand-file-name "roam/notes/" org-directory)))
+  (setq citar-at-point-function 'embark-act) ; Use Embark for contextual actions
+
+  ;; Enable embark integration for citar
+  (citar-embark-mode)
+
+  (setq citar-symbols
+        `((file ,(nerd-icons-octicon "nf-oct-file" :face 'nerd-icons-red) . " ")
+          (note ,(nerd-icons-octicon "nf-oct-note" :face 'nerd-icons-yellow) . " ")
+          (link ,(nerd-icons-octicon "nf-oct-link" :face 'nerd-icons-blue) . " "))))
+#+end_src
+
+*** Org Roam BibTeX for Note Taking
+#+begin_src emacs-lisp
+(after! org-roam-bibtex
+  (setq orb-bibtex-file (car my-bib-files)) ; ORB needs one primary file for note creation
+  (setq orb-roam-directory (expand-file-name "roam/notes/" org-directory))
+  (setq orb-templates
+        '(("r" "ref" plain (function org-roam-capture--get-point) ""
+           :file-name "${citekey}"
+           :head "#+TITLE: ${title}\n#+AUTHOR: ${author-or-editor}\n#+ROAM_KEY: ${ref}\n#+ROAM_TAGS: lit-note\n\n* Summary\n\n* Quotes\n\n* My Thoughts\n\n* Related\n\n- ${citekey}"
+           :unnarrowed t))))
+#+end_src
+
+*** Integration between Citar and Org-Roam
+#+begin_src emacs-lisp
+(after! org-roam
+  (require 'citar-org-roam)
+  (citar-org-roam-mode))
+#+end_src
+
+** LaTeX Engine and LSP
+*** AUCTeX & Tectonic
+#+begin_src emacs-lisp
+(after! tex
+  (setq-default TeX-engine 'tectonic)
+  (setq TeX-view-program-selection '((output-pdf "PDF Tools")))
+  (setq TeX-source-correlate-mode t)
+  (setq TeX-source-correlate-start-server t)
+  (setq font-latex-fontify-sectioning 1.3) ; Scale section headers for readability
+
+  (defun my/tex-compile-and-clean ()
+    "Compile the LaTeX file with Tectonic and clean auxiliary files on success."
+    (interactive)
+    (let ((TeX-clean-extensions
+           '(".aux" ".bbl" ".blg" ".log" ".out" ".toc" ".fls" ".fdb_latexmk" "*-blx.bib" "*.run.xml")))
+      (TeX-command-master nil (lambda () (TeX-clean)))))
+
+  (add-hook 'LaTeX-mode-hook
+            (lambda ()
+              (outline-minor-mode)
+              (rainbow-delimiters-mode))))
+#+end_src
+
+*** LSP Configuration
+#+begin_src emacs-lisp
+(after! lsp-mode
+  ;; 1. Register texlab as a client for lsp-mode
+  (lsp-register-client
+   (make-lsp-client :new-connection (lsp-stdio-connection '("texlab"))
+                    :major-modes '(tex-mode latex-mode)
+                    :remote? t
+                    :server-id 'texlab))
+
+  ;; 2. Configure the settings for texlab using the modern API
+  (lsp-register-custom-settings
+   '(("texlab.build.executable" "tectonic")
+     ("texlab.build.args" ["-Z" "shell-escape" "--outdir=%OUTDIR%" "%FILE%"])
+     ("texlab.forwardSearch.executable" "zathura")
+     ("texlab.forwardSearch.args" ["--synctex-forward" "%LINE%:%COLUMN%" "%PDF%"]))))
+#+end_src
+
+** Core Writing Experience and Programmatic Snippets
+*** UI Enhancements
+#+begin_src emacs-lisp
+(setq +zen-mixed-pitch-modes '(org-mode LaTeX-mode markdown-mode))
+(dolist (hook +zen-mixed-pitch-modes)
+  (add-hook (intern (concat (symbol-name hook) "-hook")) #'mixed-pitch-mode))
+(after! laas (add-hook 'LaTeX-mode-hook #'laas-mode))
+#+end_src
+
+*** Programmatic Snippet Generation
+#+begin_src emacs-lisp
+(after! yasnippet
+  (let* (;; --- Source Lists for Snippet Generation ---
+         (greek-alphabet
+          '(("a" . "alpha") ("b" . "beta") ("g" . "gamma") ("d" . "delta")
+            ("e" . "epsilon") ("z" . "zeta") ("h" . "eta") ("th" . "theta")
+            ("i" . "iota") ("k" . "kappa") ("l" . "lambda") ("m" . "mu")
+            ("n" . "nu") ("x" . "xi") ("p" . "pi") ("r" . "rho")
+            ("s" . "sigma") ("t" . "tau") ("u" . "upsilon") ("ph" . "phi")
+            ("ch" . "chi") ("ps" . "psi") ("o" . "omega")))
+         (math-symbols
+          '(("!=" . "neq") (">=" . "geq") ("<=" . "leq") ("->" . "to")
+            ("<-" . "leftarrow") ("=>" . "Rightarrow") ("<=" . "Leftarrow")
+            ("v" . "forall") ("e" . "exists") ("!e" . "nexists")
+            ("in" . "in") ("!in" . "notin") ("sub" . "subset") ("sup" . "supset")
+            ("sube" . "subseteq") ("supe" . "supseteq") ("0" . "emptyset")
+            ("inf" . "infty") ("d" . "partial") ("grad" . "nabla")))
+         (math-environments
+          '(("eq" . "equation") ("eq*" . "equation*") ("ali" . "align")
+            ("ali*" . "align*") ("gat" . "gather") ("gat*" . "gather*")))
+         (math-structures
+          '(("f" . "\\frac{$1}{$2}$0") ("sq" . "\\sqrt{$1}$0")
+            ("sqr" . "\\sqrt[$2]{$1}$0") ("hat" . "\\hat{$1}$0")
+            ("bar" . "\\bar{$1}$0") ("vec" . "\\vec{$1}$0") ("til" . "\\tilde{$1}$0")
+            ("dot" . "\\dot{$1}$0") ("ddot" . "\\ddot{$1}$0")))
+         (section-commands
+          '(("ch" . "chapter") ("sec" . "section") ("ssec" . "subsection")
+            ("sssec" . "subsubsection") ("par" . "paragraph")))
+         (theorem-environments
+          '(("thm" . "theorem") ("lem" . "lemma") ("cor" . "corollary")
+            ("prop" . "proposition") ("defn" . "definition") ("rem" . "remark"))))
+
+    ;; --- Snippet Definition Logic ---
+    (yas-define-snippets 'latex-mode
+      (append
+       ;; Greek letters (e.g., 'a -> \alpha, 'A -> \Alpha)
+       (mapcan (lambda (g)
+                 `((,(concat "'" (car g)) ,(concat "\\" (cdr g)))
+                   (,(concat "'" (upcase (car g))) ,(concat "\\" (capitalize (cdr g))))))
+               greek-alphabet)
+       ;; Math blackboard bold (e.g., `R -> \mathbb{R})
+       (mapcar (lambda (c) `(,(concat "`" c) ,(concat "\\mathbb{" c "}")))
+               '("R" "C" "N" "Z" "Q" "P" "E" "F" "H" "I" "K" "L" "S" "T"))
+       ;; General math symbols (e.g., ;!= -> \neq)
+       (mapcar (lambda (m) `(,(concat ";" (car m)) ,(concat "\\" (cdr m)))) math-symbols)
+       ;; Math environments (e.g., ,eq -> \begin{equation}...)
+       (mapcar (lambda (e) `(,(concat "," (car e))
+                              ,(format "\\begin{%s}\n  $0\n\\end{%s}" (cdr e) (cdr e))))
+               math-environments)
+       ;; Math structures (e.g., //f -> \frac{}{})
+       (mapcar (lambda (s) `(,(concat "//" (car s)) ,(cdr s))) math-structures)
+       ;; Sectioning commands with labels (e.g., sec -> \section{}, secl -> \section{} \label{})
+       (mapcan (lambda (s)
+                 (let* ((key (car s)) (cmd (cdr s)))
+                   `((,key ,(format "\\%s{$1}$0" cmd))
+                     (,(concat key "l") ,(format "\\%s{$1} \\label{%s:$2}\n$0" cmd key)))))
+               section-commands)
+       ;; Theorem-like environments (e.g., Bthm -> \begin{theorem})
+       (mapcar (lambda (e) `(,(concat "B" (car e)) ,(format "\\begin{%s}\n  $0\n\\end{%s}" (cdr e) (cdr e))))
+               theorem-environments)))))
+#+end_src
+
+** Advanced Org-Mode Export and Project Utilities
+*** Project-specific utilities
+
+#+begin_src emacs-lisp
+(defun my/latex-find-project-packages ()
+  "Find all .sty files in the project's 'styles' directory or parent directories."
+  (let ((search-dirs '("./styles/" "../styles/" "./" "../")))
+    (seq-uniq
+     (seq-sort #'string-lessp
+               (seq-filter #'identity
+                           (mapcan (lambda (dir)
+                                     (when (file-directory-p dir)
+                                       (directory-files dir t "\\.sty$")))
+                                   search-dirs))))))
+
+(defun my/latex-insert-project-packages (format-str)
+  "Insert project .sty files using FORMAT-STR."
+  (let ((packages (my/latex-find-project-packages)))
+    (if (not packages)
+        (message "No local .sty files found.")
+      (insert (string-join (mapcar (lambda (file)
+                                     (format format-str
+                                             (file-name-sans-extension
+                                              (file-relative-name file default-directory))))
+                                   packages)
+                           "\n")))))
+
+(defun my/latex-insert-packages-tex ()
+  "Insert \\usepackage lines for local .sty files."
+  (interactive)
+  (my/latex-insert-project-packages "\\usepackage{%s}"))
+
+(defun my/latex-insert-packages-org ()
+  "Insert #+LATEX_HEADER lines for local .sty files."
+  (interactive)
+  (my/latex-insert-project-packages "#+LATEX_HEADER: \\usepackage{%s}"))
+#+end_src
+
+*** Dynamic Org Export Preamble System
+#+begin_src emacs-lisp
+(after! ox-latex
+  (setq org-latex-listings 'engraved)
+  (setq org-latex-pdf-process '("tectonic -Z shell-escape --outdir=%o %f"))
+  (setq org-latex-default-class "chameleon")
+  (setq org-beamer-theme "[progressbar=foot]metropolis")
+
+  (defvar my/org-latex-features
+    '(("\\[\\[\\(?:file\\|https?\\):[^]]+?\\.\\(?:eps\\|pdf\\|png\\|jpeg\\|jpg\\)\\]\\]" . image)
+      ("^[ \t]*|" . table)
+      ("cref:" . cleveref)
+      ("^[ \t]*#\\+begin_(?:warning|info|success|error)" . tcolorbox)
+      ((lambda (info) (eq 'beamer (org-export-backend-name (plist-get info :back-end)))) . beamer)))
+
+  (defvar my/org-latex-feature-pkgs
+    '((image . "\\usepackage{graphicx}")
+      (table . "\\usepackage{longtable}\n\\usepackage{booktabs}")
+      (cleveref . "\\usepackage[capitalize]{cleveref}")
+      (tcolorbox . "\\usepackage[most]{tcolorbox}")
+      (beamer . "\\usepackage{scrextend}")))
+
+  (defun my/org-latex-get-preamble (info)
+    (mapconcat (lambda (feature) (cdr (assq feature my/org-latex-feature-pkgs)))
+               (delete-dups
+                (mapcan (lambda (ft)
+                          (when (pcase (car ft)
+                                  ((pred stringp) (save-excursion (re-search-forward (car ft) nil t)))
+                                  ((pred functionp) (funcall (car ft) info)))
+                            (if (listp (cdr ft)) (cdr ft) (list (cdr ft)))))
+                        my/org-latex-features))
+               "\n"))
+
+  (defvar-local my/org-latex-info-buffer nil)
+  (advice-add #'org-latex-make-preamble :before
+              (defun my/org-latex-save-info-advice (info &rest _)
+                (setq my/org-latex-info-buffer info)))
+
+  (advice-add #'org-splice-latex-header :around
+              (defun my/org-splice-latex-header-advice (orig-fn &rest args)
+                (let ((header (apply orig-fn args)))
+                  (if (plist-get (car (last args)) :latex-snippets) header
+                    (concat header "\n%% Dynamic Preamble\n"
+                            (my/org-latex-get-preamble my/org-latex-info-buffer)
+                            "\n%% End Dynamic Preamble\n")))))
+
+  (add-to-list 'org-latex-classes
+               '("chameleon"
+                 "\\documentclass[11pt,a4paper]{scrartcl}
+[PACKAGES]
+[DEFAULT-PACKAGES]
+[EXTRA]
+\\usepackage{fontspec}
+\\usepackage{geometry}
+\\usepackage[svgnames]{xcolor}
+\\usepackage{hyperref}
+\\setmainfont{Source Serif Pro}
+\\setmonofont{JetBrains Mono}[Scale=MatchLowercase]
+\\usepackage{microtype}
+\\geometry{margin=1in}
+\\hypersetup{colorlinks=true, linkcolor=NavyBlue, citecolor=ForestGreen, urlcolor=SteelBlue}
+% Support for admonition boxes
+\\newtcolorbox{warning}{colback=yellow!10,colframe=yellow!70!black,title=Warning}
+\\newtcolorbox{info}{colback=blue!10,colframe=blue!70!black,title=Info}
+\\newtcolorbox{success}{colback=green!10,colframe=green!70!black,title=Success}
+\\newtcolorbox{error}{colback=red!10,colframe=red!70!black,title=Error}"
+                 ("\\section{%s}" . "\\section*{%s}"))))
+#+end_src
+
+** Keybindings
+#+begin_src emacs-lisp
+(map! :leader
+      :map latex-mode-map
+      :prefix ("m" . "latex")
+      "c" '(:ignore t :wk "Compile")
+      "cc" '(my/tex-compile-and-clean :wk "Compile & Clean")
+      "cv" '(TeX-view :wk "View Output")
+      "ce" '(TeX-error-overview :wk "Error Overview")
+      "ck" '(TeX-clean :wk "Clean Aux Files")
+      "i" '(:ignore t :wk "Insert")
+      "in" '(orb-note-actions :wk "Create/Open Literature Note (ORB)")
+      "ic" '(citar-insert-citation :wk "Insert Citation")
+      "ip" '(my/latex-insert-packages-tex :wk "Insert Project Packages")
+      "il" '(LaTeX-insert-label :wk "Insert Label")
+      "ir" '(LaTeX-insert-ref :wk "Insert Reference")
+      "e" '(:ignore t :wk "Environment")
+      "ee" '(LaTeX-environment :wk "Insert Environment")
+      "s" '(:ignore t :wk "Section")
+      "ss" '(LaTeX-section :wk "Insert Section"))
+
+(map! :leader
+      :map org-roam-mode-map
+      :prefix ("n" . "roam") ; 'n' for node
+      "l" '(orb-note-actions :wk "Literature Note Actions (ORB)"))
+
+(map! :leader
+      :map org-mode-map
+      :prefix ("m" . "org")
+      "p" '(my/latex-insert-packages-org :wk "Insert Project Packages"))
+#+end_src
+
+* Magit
+** Forge
+#+begin_src emacs-lisp
+(setq forge-owned-accounts '(("aahsnr")))
+#+end_src
+
+* Python
+** General Python Settings
+These settings establish a baseline for Python development.
+#+begin_src emacs-lisp
+(after! python
+  (setq python-shell-interpreter "python3")
+  (setq python-indent-offset 4)
+  (setq-default tab-width 4
+                python-indent-offset 4))
+#+end_src
+
+** Formatting with Black via Apheleia
+The `(format +onsave)` module uses `apheleia` to format code. Doom automatically
+configures `black` as the formatter for Python when available. This explicit
+setting ensures it is prioritized for both `python-mode` and `python-ts-mode`
+(which is used when `+tree-sitter` is enabled).
+#+begin_src emacs-lisp
+(after! apheleia
+  (setf (alist-get 'python-mode apheleia-formatters) '(black))
+  (setf (alist-get 'python-ts-mode apheleia-formatters) '(black)))
+#+end_src
+
+** Linting with Pylint via Flycheck
+Doom's `(syntax)` module uses `flycheck`. We ensure `pylint` is the selected
+checker for deep, configurable code analysis.
+#+begin_src emacs-lisp
+(after! flycheck
+  ;; Set `pylint` as the default checker. While Doom often defaults to this,
+  ;; being explicit guarantees the desired behavior.
+  (flycheck-add-next-checker 'python-pylint 'python-flake8 :append)
+
+  ;; You can customize pylint arguments here. For example, to load a specific
+  ;; configuration file or disable certain checks globally.
+  ;; (setq flycheck-pylintrc ".pylintrc")
+  ;; Example: Disable common "missing docstring" warnings
+  ;; (setq flycheck-pylint-args '("--disable=C0114,C0115,C0116")))
+)
+#+end_src
+
+** Debugging with debugpy via dap-mode
+The `(:tools debugger +lsp)` module provides `dap-mode`. This section
+configures it for Python using `debugpy`.
+#+begin_src emacs-lisp
+(after! dap-python
+  ;; Set the debugger to `debugpy`. This is the default in the latest `dap-mode`
+  ;; but is set here for clarity and to override any older defaults.
+  (setq dap-python-debugger 'debugpy)
+
+  ;; Define a debug template to easily launch the current Python file.
+  ;; This will appear in the `dap-hydra` menu (SPC d r) or when running `dap-debug`.
+  (dap-register-debug-template
+   "Python :: Launch Current File"
+   (list :type "python"
+         :request "launch"
+         :name "Launch File"
+         :program "${file}"
+         :console "integratedTerminal"
+         :justMyCode t)) ; Set to nil to step into library code
+
+  ;; If you use a different terminal emulator with vterm, you can specify it.
+  (setq dap-python-terminal-kind "kitty")
+)
+#+end_src
+
+** Keybindings
+#+begin_src emacs-lisp
+(map! :leader
+      :map python-mode-map
+      :prefix ("d" . "debug")
+      "d" '(dap-debug :wk "Debug")
+      "t" '(dap-debug-last :wk "Debug Last")
+      "q" '(dap-disconnect :wk "Disconnect")
+      "b" '(dap-toggle-breakpoint :wk "Toggle Breakpoint")
+      "B" '(dap-condition-breakpoint :wk "Conditional Breakpoint")
+      "c" '(dap-continue :wk "Continue")
+      "n" '(dap-next :wk "Next")
+      "i" '(dap-step-in :wk "Step In")
+      "o" '(dap-step-out :wk "Step Out")
+      "r" '(dap-hydra :wk "Hydra Menu"))
+
+(map! :leader
+      :map python-mode-map
+      :prefix ("c" . "code")
+      "f" '(+format/buffer :wk "Format Buffer")
+      "r" '(lsp-rename :wk "Rename Symbol")
+      "a" '(lsp-execute-code-action :wk "Code Actions")
+      "d" '(lsp-find-definition :wk "Go to Definition")
+      "D" '(lsp-find-declaration :wk "Go to Declaration")
+      "I" '(lsp-find-implementation :wk "Go to Implementation")
+      "R" '(lsp-find-references :wk "Find References")
+      "h" '(lsp-describe-thing-at-point :wk "Describe at Point"))
+#+end_src
+
+* Misc
+** Cucumber
+
+#+begin_src emacs-lisp
+(use-package! feature-mode
+  :mode "\\.feature$")
+#+end_src
+
+** Systemd
+
+#+begin_src emacs-lisp
+(use-package! systemd
+  :mode "\\.service$")
+#+end_src
+
+** RPM Spec
+
+#+begin_src emacs-lisp
+;; (use-package! rpm-spec-mode
+;;   :mode "\\.spec\\(\\.in\\)?$")
+#+end_src
+
+** M-x
+#+begin_src emacs-lisp
+(map! :leader
+      :desc "Open like spacemacs" "SPC" #'execute-extended-command)
+#+end_src
+
+** Use Zen-Browser as default
+#+begin_src emacs-lisp
+;; set specific browser to open links
+;; set browser to zen-browser
+(setq browse-url-browser-function 'browse-url-generic)
+(setq browse-url-generic-program "zen-browser")  ; replace with actual executable name
+#+end_src
