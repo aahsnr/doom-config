@@ -314,7 +314,7 @@
   ;; Enable pulsar globally for visual feedback on various actions.
   ;; This ensures Pulsar's effects are active by default.
   (pulsar-global-mode 1)
-  (setq pulsar-delay 0.05    ; Short delay for a snappier feel
+  (setq pulsar-delay 0.1    ; Short delay for a snappier feel
         pulsar-iterations 5) ; Fewer iterations for a subtle effect
   (setq pulsar-autojump t
         pulsar-autojump-delay 0.1)
