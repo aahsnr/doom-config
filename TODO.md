@@ -90,10 +90,6 @@
 
 -   [ ] **Imenu**
 
--   [ ] **Ligatures and Unicode that mimics doom emacs**
-
--   [ ] **prettify-symbols-mode**
-
 -   [ ] **Crux**
 
 -   [X] **Rainbow-Delimiters**
@@ -135,13 +131,17 @@
 ______
 # Using Built-in and Minimal Packages
 
--   [ ] **Replace lsp-mode with eglot & eglot-booster**
+- [ ] **Replace lsp-mode with eglot**
 
--   [ ] **Replace dap-mode with dape**
+- [ ] **Replace dap-mode with dape**
 
--   [ ] **Replace flycheck with flymake**
+- [ ] **Replace flycheck with flymake**
 
--   [ ] **Add consult-flymake**
+- [ ] **Add consult-flymake**
+- [ ] **Replace tree-sitter with treesit**
+
+- [ ] **Replace projectile entirely with project.el**
+- [ ] **Replace persp-mode completely with perspective.el**
 
 
 ------------------------------------------------------------------------
@@ -182,17 +182,6 @@ ______
     loaded in the correct order. Make sure all the components work well
     with each other. Defer any component if necessary. Optimize the
     whole configuration as well. Then rewrite the whole configuration.
-
-------------------------------------------------------------------------
-
-# ***Inspirations***
-
--   [ ] Emacs Writing Studio
--   [ ] Doom Emacs
--   [ ] Scimax
--   [ ] SqrtMinusOne
--   [ ] <https://github.com/emacs-tw/awesome-emacs>
--   [ ] progfolio setup
 
 ------------------------------------------------------------------------
 
@@ -412,65 +401,4 @@ to init.el with the following features, properties and integrations:
     packages with quality of life improvements emacs and following the
     theming and features from the doom emacs dashboard
 
--   comprehensive and state-of-the-art configuration for org-mode using
-    the built-in org-mode in emacs with org-mode optimizations and the
-    following features and integrations: do not pull org package from
-    any emacs sources, instead use the built-in org-mode that comes with
-    emacs 30; quality of features and improvements; do not setup
-    org-roam(v1,2), org-noter or org-brain throughout the emacs 30
-    configuration; org file directory is in \$HOME/org along with all
-    other org-mode related files; extensive org headlines configuration
-    with variable font size with each level of header, tokyonight night
-    theme integrations, fonts using JetBrainsMono Nerd Font bold fonts
-    for all headlines; prettify source code blocks with ligatures and
-    icons; all org files start in the overview mode; comprehensive org
-    babel configuration with support for python, shell, emacs-lisp and
-    conf-unix; comprehensive org structure templates configuration with
-    support for python, shell, emacs-lisp and conf-unix; comprehesive
-    org-agenda setup including integrations with org-super-agenda;
-    comprehensive org-todo configuration following exactly from the doom
-    emacs project including the default keybindings, and default
-    keywords, and integrates with org-super-agenda and org-modern;
-    comprehensive org-fragtog and org-download integration; pomodoro
-    integration for tasks; doom emacs-like capture templates;
-    comprehensive org-modern configuration with optimizations and
-    integrations throughout the whole configuration and also include
-    integrations with org-super-agenda, org-fragtog, org-download, org
-    headlines and have custom org stars; org-fancy-priorities
-    configuration with integration into org-modern; setup a binary or
-    python script for org-capture similar to the doom emacs project;
-    seamless integrations writing in bold, italic and underline texts,
-    as well as url and highlighted texts in org mode
 
--   extensive hl-todo configuration that integration with org-modern and
-    keybindings follows spacemacs like format
-
--   autopair setup for types of brackets except for the delimiter \"\<\"
-    inside a org file
-
--   org-roam v2 configuration with the following features and
-    integrations: features that are inspired by The Brain in
-    <https://thebrain.com/>; keybindings that follow doom-emacs-like
-    bindings; quality-of-life features and improvements; advance
-    visualizations; obsidian-like features; don\'t follow obsidian
-    keybindings;; org-roam v2 related files are inside the org
-    directory; additional quality-of-life features and improvements
-
--   setup a binary or python script for having features like doom doctor
-    and doom sync from the doom emacs project for the emacs 30
-    configuration
-
--   \[o\] comprehensive and state-of-the-art python programming
-    configuration that includes lsp-mode integration, treesitters,
-    formatters, linters, and dap and integrates all these features into
-    org-mode so that python programming in an org file has support for
-    these features inside org source code blocks and python programming
-    in org-mode is seamless. The configuration must include
-    comprehensive support for programming in jupyter using the
-    emacs-jupyter package inside org mode.
-
--   comprehensive projectile configuration with support for various
-    programming languages and integrates into ibuffer if possible
-
--   take inspiration from the doom emacs project for any missing
-    features that may quality of life improvements
