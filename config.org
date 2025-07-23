@@ -101,7 +101,7 @@
 
 (after! which-key
   (require 'nerd-icons)
-  (let ((evil-icon (nerd-icons-devicon "nf-dev-vim" :face '(:foreground "#a6e3a1" :weight 'bold) :v-adjust -0.1)))
+  (let ((evil-icon (nerd-icons-devicon "nf-dev-terminal" :face '(:foreground "#a6e3a1" :weight 'bold) :v-adjust -0.1)))
     (pushnew!
      which-key-replacement-alist
      '(("" . "\\`+?evil[-:]?\\(?:a-\\)?\\(.*\\)") . (nil . ,(concat evil-icon "  \\1")))
@@ -161,9 +161,9 @@
   :config
   (require 'nerd-icons)
   (setq consult-yasnippet-category-icon-alist
-        `((t . ,(concat (nerd-icons-faicon "nf-fa-puzzle_piece" :face '(:foreground "#c6a0f6")) " »"))
-          ("Emacs Lisp" . ,(concat (nerd-icons-devicon "nf-dev-emacs" :face '(:foreground "#c6a0f6")) " λ"))
-          ("Text" . ,(concat (nerd-icons-faicon "nf-fa-text_height" :face '(:foreground "#cad3f5")) " ¶"))
+        `((t . ,(concat (nerd-icons-octicon "nf-oct-package" :face '(:foreground "#c6a0f6")) " »"))
+          ("Emacs Lisp" . ,(concat (nerd-icons-sucicon "nf-custom-emacs" :face '(:foreground "#c6a0f6")) " λ"))
+          ("Text" . ,(concat (nerd-icons-faicon "nf-fa-file_text" :face '(:foreground "#cad3f5")) " ¶"))
           ("Org" . ,(concat (nerd-icons-sucicon "nf-custom-orgmode" :face '(:foreground "#a6da95")) " ★"))
           ("Python" . ,(concat (nerd-icons-devicon "nf-dev-python" :face '(:foreground "#8aadf4")) " 🐍"))))
 
@@ -537,7 +537,7 @@
         org-use-property-inheritance t
         org-archive-location "archive/Archive_%s::"
         org-auto-align-tags nil)
-  (setq org-ellipsis ,(concat " " (nerd-icons-faicon "nf-fa-ellipsis_h" :face '(:foreground "#6e738d")) " "))
+  (setq org-ellipsis (concat " " (nerd-icons-faicon "nf-fa-plus" :face '(:foreground "#6e738d")) " "))
 
   (add-hook! org-mode #'ar/org-setup-hook))
 #+end_src
@@ -616,17 +616,17 @@ Can pass the position as POS if already computed."
 
 (after! org
   (require 'nerd-icons)
-  (let* ((n-todo      (nerd-icons-octicon "nf-oct-issue_opened"      :face '(:foreground "#ed8796")))
-         (n-next      (nerd-icons-mdicon "nf-mdi-ray_start_arrow"   :face '(:foreground "#f5a97f")))
-         (n-prog      (nerd-icons-faicon "nf-fa-spinner"            :face '(:foreground "#8bd5ca")))
-         (n-wait      (nerd-icons-mdicon "nf-mdi-timer_sand"        :face '(:foreground "#c6a0f6")))
-         (n-done      (nerd-icons-octicon "nf-oct-issue_closed"     :face '(:foreground "#a6da95")))
-         (n-cancelled (nerd-icons-octicon "nf-oct-skip"             :face '(:foreground "#6e738d")))
-         (n-goal      (nerd-icons-mdicon "nf-mdi-target"            :face '(:foreground "#91d7e3")))
-         (n-active    (nerd-icons-mdicon "nf-mdi-rocket_launch"     :face '(:foreground "#f5a97f")))
-         (n-paused    (nerd-icons-mdicon "nf-mdi-pause_circle"      :face '(:foreground "#6e738d")))
-         (n-achieved  (nerd-icons-mdicon "nf-mdi-trophy"            :face '(:foreground "#7dc4e4")))
-         (n-dropped   (nerd-icons-mdicon "nf-mdi-cancel"            :face '(:foreground "#6e738d"))))
+  (let* ((n-todo      (nerd-icons-octicon "nf-oct-checklist"         :face '(:foreground "#ed8796")))
+           (n-next      (nerd-icons-faicon "nf-fa-bolt"                :face '(:foreground "#f5a97f")))
+           (n-prog      (nerd-icons-faicon "nf-fa-cogs"                :face '(:foreground "#8bd5ca")))
+           (n-wait      (nerd-icons-octicon "nf-oct-calendar"           :face '(:foreground "#c6a0f6")))
+           (n-done      (nerd-icons-octicon "nf-oct-checklist"          :face '(:foreground "#a6da95")))
+           (n-cancelled (nerd-icons-faicon "nf-fa-trash_o"             :face '(:foreground "#6e738d")))
+           (n-goal      (nerd-icons-mdicon "nf-md-star"                :face '(:foreground "#91d7e3")))
+           (n-active    (nerd-icons-faicon "nf-fa-bolt"                :face '(:foreground "#f5a97f")))
+           (n-paused    (nerd-icons-octicon "nf-oct-lock"               :face '(:foreground "#6e738d")))
+           (n-achieved  (nerd-icons-mdicon "nf-md-star"                :face '(:foreground "#7dc4e4")))
+           (n-dropped   (nerd-icons-faicon "nf-fa-trash_o"             :face '(:foreground "#6e738d"))))
     (setq org-todo-keywords
           `((sequence ,(concat n-todo      " ☛ TODO(t)")
                       ,(concat n-next      " ⚡ NEXT(n)")
@@ -662,23 +662,25 @@ Can pass the position as POS if already computed."
   (require 'nerd-icons)
   (setq org-modern-star '("◉" "○" "◈" "◇" "◆" "▷")
         org-modern-hide-stars "· "
-        org-modern-list `((43 . ,(concat (nerd-icons-faicon "nf-fa-plus" :face '(:foreground "#89b4fa")) " ➤"))
-                          (45 . ,(concat (nerd-icons-faicon "nf-fa-minus" :face '(:foreground "#ed8796")) " –"))
-                          (42 . ,(concat (nerd-icons-faicon "nf-fa-asterisk" :face '(:foreground "#f9e2af")) " •")))
         org-modern-table-vertical 1
-        org-modern-table-horizontal 0.1
-        org-modern-block-name `(("src" ,(concat (nerd-icons-faicon "nf-fa-code" :face '(:foreground "#89b4fa")) " »") "«")
-                                ("example" ,(concat (nerd-icons-octicon "nf-oct-beaker" :face '(:foreground "#a6e3a1")) " »") "«")
-                                ("quote" ,(concat (nerd-icons-faicon "nf-fa-quote_left" :face '(:foreground "#cba6f7")) " ❝") "❞"))
-       org-modern-tag-faces
-        `((:foreground "#cad3f5" :weight bold :box (:line-width (1 . -1) :color "#363a4f")))
-        org-modern-checkbox `((todo . ,(concat (nerd-icons-faicon "nf-fa-square_o") " ☐"))
-                              (done . ,(concat (nerd-icons-faicon "nf-fa-check_square_o" :face '(:foreground "#a6da95")) " ☑"))
-                              (cancel . ,(concat (nerd-icons-faicon "nf-fa-minus_square_o" :face '(:foreground "#6e738d")) " ☒"))
-                              (priority . ,(concat (nerd-icons-faicon "nf-fa-flag" :face '(:foreground "#ed8796")) " ⚑"))
+        org-modern-table-horizontal 0.1)
+
+  (setq org-modern-list `((43 . ,(concat (nerd-icons-faicon "nf-fa-plus" :face '(:foreground "#89b4fa")) " ➤"))
+                          (45 . ,(concat (nerd-icons-faicon "nf-fa-trash_o" :face '(:foreground "#ed8796")) " –"))
+                          (42 . ,(concat (nerd-icons-mdicon "nf-md-star" :face '(:foreground "#f9e2af")) " •"))))
+
+  (setq org-modern-block-name `(("src" ,(concat (nerd-icons-faicon "nf-fa-code" :face '(:foreground "#89b4fa")) " »") "«")
+                                ("example" ,(concat (nerd-icons-octicon "nf-oct-tools" :face '(:foreground "#a6e3a1")) " »") "«")
+                                ("quote" ,(concat (nerd-icons-faicon "nf-fa-commenting_o" :face '(:foreground "#cba6f7")) " ❝") "❞")))
+  (setq org-modern-tag-faces
+        `((:foreground "#cad3f5" :weight bold :box (:line-width (1 . -1) :color "#363a4f"))))
+
+  (setq org-modern-checkbox `((todo . ,(concat (nerd-icons-faicon "nf-fa-file_o") " ☐"))
+                              (done . ,(concat (nerd-icons-octicon "nf-oct-checklist" :face '(:foreground "#a6da95")) " ☑"))
+                              (cancel . ,(concat (nerd-icons-faicon "nf-fa-trash_o" :face '(:foreground "#6e738d")) " ☒"))
+                              (priority . ,(concat (nerd-icons-mdicon "nf-md-star" :face '(:foreground "#ed8796")) " ⚑"))
                               (on . "◉")
                               (off . "○"))))
-
 #+end_src
 
 ** Org Appear
@@ -720,7 +722,7 @@ Lisp programs can force the template by setting KEYS to a string."
       (org-mks org-capture-templates
                "Select a capture template\n━━━━━━━━━━━━━━━━━━━━━━━━━"
                "Template key: "
-               `(("q" ,(concat (nerd-icons-octicon "nf-oct-stop" :face '(:foreground "#ed8796") :v-adjust 0.01) "\tAbort")))))))
+               `(("q" ,(concat (nerd-icons-faicon "nf-fa-trash_o" :face '(:foreground "#ed8796") :v-adjust 0.01) "\tAbort")))))))
 (advice-add 'org-capture-select-template :override #'org-capture-select-template-prettier)
 
 (defun org-mks-pretty (table title &optional prompt specials)
@@ -844,8 +846,7 @@ Lisp programs can force the template by setting KEYS to a string."
                        "  :CREATED: %U"
                        "  :END:"))
            ("Note" :keys "n"
-            ;; CORRECTED ICON: Replaced nf-mdi-note_text_outline with nf-mdi-note
-            :icon ("nf-mdi-note" :set "mdicon" :color "#f9e2af")
+            :icon ("nf-fa-file_text" :set "faicon" :color "#f9e2af")
             :file "inbox.org"
             :headline "Notes"
             :template ("* %? :note:"
@@ -853,25 +854,25 @@ Lisp programs can force the template by setting KEYS to a string."
                        "  :CREATED: %U"
                        "  :END:"))
            ("Journal" :keys "j"
-            :icon ("nf-mdi-calendar_text" :set "mdicon" :color "#f5c2e7")
+            :icon ("nf-oct-calendar" :set "octicon" :color "#f5c2e7")
             :file "journal.org"
             :datetree t
             :template ("* %U %?"))
            ("Meeting" :keys "m"
-            :icon ("nf-mdi-account_multiple" :set "mdicon" :color "#89b4fa")
+            :icon ("nf-fa-commenting_o" :set "faicon" :color "#89b4fa")
             :file "inbox.org"
             :headline "Meetings"
             :template ("* ⚡ NEXT Meeting: %? :meeting:"
                        "  :PROPERTIES:"
                        "  :CREATED: %U"
                        "  :ATTENDEES:"
-                       "  :END:"
+                       "   :END:"
                        "** Agenda"
                        "** Notes"
                        "** Action Items"))
            ;; Long-term Planning
            ("Project" :keys "p"
-            :icon ("nf-mdi-rocket_launch" :set "mdicon" :color "#a6e3a1")
+            :icon ("nf-fa-bolt" :set "faicon" :color "#a6e3a1")
             :file "projects.org"
             :headline "Projects"
             :template ("* 🚀 ACTIVE %? :project:"
@@ -886,7 +887,7 @@ Lisp programs can force the template by setting KEYS to a string."
                        "** 📚 Resources"
                        "** 📝 Notes"))
            ("Book" :keys "b"
-            :icon ("nf-mdi-book_open_page_variant" :set "mdicon" :color "#fab387")
+            :icon ("nf-md-book_open" :set "mdicon" :color "#fab387")
             :file "reading.org"
             :headline "Reading List"
             :template ("* ☛ TODO %? :book:read:"
@@ -900,7 +901,7 @@ Lisp programs can force the template by setting KEYS to a string."
                        "** Key Takeaways"
                        "** Quotes"))
            ("Goal" :keys "g"
-            :icon ("nf-mdi-flag_checkered" :set "mdicon" :color "#cba6f7")
+            :icon ("nf-md-star" :set "mdicon" :color "#cba6f7")
             :file "goals.org"
             :headline "Goals"
             :template ("* 🎯 GOAL %? :goal:"
@@ -914,7 +915,7 @@ Lisp programs can force the template by setting KEYS to a string."
                        "*** ☛ TODO Break down into smaller tasks"))
            ;; Protocol links
            ("Protocol" :keys "P"
-            :icon ("nf-mdi-link_variant" :set "mdicon" :color "#89b4fa")
+            :icon ("nf-oct-link" :set "octicon" :color "#89b4fa")
             :file "Notes.org"
             :template ("* ☛ TODO %^{Title}"
                        "Source: %u"
@@ -923,11 +924,12 @@ Lisp programs can force the template by setting KEYS to a string."
                        "#+END_QUOTE"
                        "%?"))
            ("Protocol link" :keys "L"
-            :icon ("nf-mdi-link_variant_plus" :set "mdicon" :color "#89b4fa")
+            :icon ("nf-oct-link" :set "octicon" :color "#89b4fa")
             :file "Notes.org"
             :template ("* ☛ TODO %?"
                        "[[%:link][%:description]]"
-                       "Captured on: %U"))))))#+end_src
+                       "Captured on: %U"))))))
+#+end_src
 
 * Writing
 ** Citation and Bibliography
@@ -957,9 +959,9 @@ Lisp programs can force the template by setting KEYS to a string."
   (citar-embark-mode)
 
   (setq citar-symbols
-        `((file ,(nerd-icons-octicon "nf-oct-file" :face 'nerd-icons-red) . " ")
-          (note ,(nerd-icons-octicon "nf-oct-note" :face 'nerd-icons-yellow) . " ")
-          (link ,(nerd-icons-octicon "nf-oct-link" :face 'nerd-icons-blue) . " "))))
+          `((file ,(nerd-icons-faicon "nf-fa-file_o" :face 'nerd-icons-red) . " ")
+            (note ,(nerd-icons-faicon "nf-fa-file_text" :face 'nerd-icons-yellow) . " ")
+            (link ,(nerd-icons-octicon "nf-oct-link" :face 'nerd-icons-blue) . " "))))
 #+end_src
 
 *** Org Roam BibTeX for Note Taking
@@ -1078,7 +1080,7 @@ Lisp programs can force the template by setting KEYS to a string."
        ;; General math symbols (e.g., ;!= -> \neq)
        (mapcar (lambda (m) `(,(concat ";" (car m)) ,(concat "\\" (cdr m)))) math-symbols)
        ;; Math environments (e.g., ,eq -> \begin{equation}...)
-       (mapcar (lambda (e) `(,(concat "," (car e))
+       (mapcar (lambda (e) `(,(concat "m" (car e)) ; Changed prefix from "," to "m"
                               ,(format "\\begin{%s}\n  $0\n\\end{%s}" (cdr e) (cdr e))))
                math-environments)
        ;; Math structures (e.g., //f -> \frac{}{})
