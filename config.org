@@ -1483,7 +1483,6 @@ Language Specific Settings are done in their respective sections, and programmin
   (setq dap-ui-variable-length 200))
 #+end_src
 
-
 ** Projectile
 #+begin_src emacs-lisp
 (after! projectile
@@ -1596,6 +1595,143 @@ configures it for Python using `debugpy`.
       "h" '(lsp-describe-thing-at-point :wk "Describe at Point"))
 #+end_src
 
+* Jupyter
+#+begin_src emacs-lisp
+;; --- Core Jupyter & Org Babel Setup ---
+(after! jupyter
+  ;; Set the Python interpreter for the server.
+  (setq-hook! 'jupyter-python-mode-hook
+    python-shell-interpreter "python3")
+
+  ;; Configure default header arguments for all jupyter-python blocks.
+  ;; This ensures consistent behavior and nicer output formatting.
+  (setq org-babel-default-header-args:jupyter-python
+        '((:session . "doom-py")           ; Use a consistent session name
+          (:kernel . "python3")            ; Specify the default kernel
+          (:results . "output raw drawer") ; Format results neatly in a drawer
+          (:async . "yes")                ; Execute asynchronously
+          (:iopub-channel-timeout . 60)))  ; Increase timeout for long-running cells
+
+  ;; Use the jupyter-repl for interactive execution with `C-c C-c`.
+  ;; This sends code to a persistent kernel, maintaining state.
+  (setq jupyter-C-c-C-c-function #'jupyter-repl-execute-buffer-or-block))
+
+  ;; Add support for displaying pandas DataFrames as Org tables.
+  ;; Doom's org module often handles many mime types. If you encounter issues,
+  ;; uncomment the following lines:
+  ;; (add-to-list! 'org-babel-mime-types '("text/html" . (lambda (data) (jupyter-org-babel-render-html data 'table))) t)
+  ;; (add-to-list! 'org-babel-mime-types '("text/plain" . jupyter-org-babel-render-plain-text) t)
+
+
+;; Ensure Jupyter kernels are aliased correctly after ob-jupyter loads.
+;; This is important for Doom Emacs's lazy loading to ensure kernels are recognized.
+(with-eval-after-load 'ob-jupyter
+  (org-babel-jupyter-aliases-from-kernelspecs))
+
+;; --- LSP Integration (assuming :lang python and +lsp flag are enabled) ---
+(after! lsp-mode
+  ;; Example: Set LSP priority for pyright (adjust as needed if you use other LSP servers)
+  (set-lsp-priority! 'pyright 2))
+
+  ;; If you use `direnv` module, LSP might automatically pick up the virtual environment.
+  ;; Otherwise, you might need:
+  ;; (add-hook 'jupyter-python-mode-hook #'lsp-pyright-activate-venv)
+
+
+;; --- Completion and Snippets (assuming :completion corfu is enabled) ---
+(after! corfu
+  ;; Enable Corfu for relevant modes, including Jupyter Python source blocks.
+  (setq corfu-auto-completion-modes '(python-mode
+                                      org-mode
+                                      org-src-mode
+                                      jupyter-python-mode))
+
+  ;; Configure Corfu backend and sorting.
+  (setq corfu-backend '(cape-dabbrev cape-file cape-keyword nil)
+        corfu-sort-function #'corfu-sort-by-length
+        corfu-doc-indicator nil) ; Set to `t` to show documentation in a separate buffer
+
+  ;; Add Corfu to org-src-mode hook for completion within source blocks.
+  (add-hook 'org-src-mode-hook #'corfu-mode)
+
+  ;; Exclude specific modes from Corfu if their completion is already handled
+  ;; by another completion system (e.g., `vertico-mode` for minibuffer).
+  ;;(add-to-list 'corfu-excluded-modes '(vertico-mode))
+
+  ;; Fix `RET` (Enter) key behavior in Org mode when Corfu is active to ensure
+  ;; it inserts the selected completion candidate instead of a newline.
+  (defadvice! +corfu--org-return (orig)
+    :around '+org/return
+    (if (and (featurep! :completion corfu)
+             corfu-mode
+             (>= corfu--index 0))
+        (corfu-insert)
+      (funcall orig))))
+
+  ;; Doom Emacs typically handles snippets via its `snippets` module or `yasnippet`
+  ;; integration, so explicit `yas-minor-mode` configuration might not be needed.
+
+
+;; --- Code Formatting (assuming :tools format and :lang python are enabled with black) ---
+(use-package! python-black
+  :after org ; Ensure `org` module is loaded before configuring `python-black`
+  :config
+  ;; Enable `black` formatting on save for `python-mode` buffers.
+  (add-hook 'python-mode-hook #'black-on-save-mode)
+  ;; Enable `black` formatting on save specifically for `jupyter-python` source blocks in Org mode.
+  (add-hook 'org-src-mode-hook (lambda ()
+                                  (when (string-equal (org-src-get-lang) "jupyter-python")
+                                    (add-hook 'after-save-hook #'black-on-save-mode nil 'local)))))
+
+;; Custom keybinding for manual formatting of the current Org source block.
+;; This is optional, as format-on-save is often preferred.
+(map! :map org-mode-map
+      :leader
+      :prefix ("o" . "org")
+      :prefix ("c" . "code")
+      "f" #'+my/jupyter-format-src-block)
+
+(defun +my/jupyter-format-src-block ()
+  "Format the current Org source block using black if it's a jupyter-python block."
+  (interactive)
+  (when (string-equal (org-src-get-lang) "jupyter-python")
+    (black-buffer)))
+
+;; --- Interactive Debugging with DAP (assuming :tools debugger and +lsp are enabled) ---
+(after! dap-python
+  ;; Recommend using `debugpy` as the Python debugger with DAP.
+  (setq dap-python-debugger 'debugpy)
+
+  ;; Register a debug template to attach to a running Jupyter kernel.
+  (dap-register-debug-template
+   "Python :: Attach to Jupyter Kernel"
+   (list :type "python"
+         :request "attach"
+         :name "Python :: Attach to Jupyter Kernel"
+         ;; This line retrieves connection information from the jupyter package.
+         :connect (list :host "127.0.0.1"
+                        :port (lambda () (jupyter-get-connection-info :type 'shell))))))
+
+(defun +my/dap-jupyter-debug-block ()
+  "Start a DAP session to debug the current Org source block."
+  (interactive)
+  ;; Ensure a kernel is running before attempting to attach.
+  (jupyter-repl-ensure-kernel)
+  ;; Launch the predefined debug template.
+  (dap-debug-by-name "Python :: Attach to Jupyter Kernel"))
+
+;; --- Custom Keybindings ---
+;; A dedicated leader menu for Jupyter operations within Org mode.
+(map! :map org-mode-map
+      :leader
+      :prefix ("o" . "org")  ; Define 'o' as prefix for org-related commands
+      :prefix ("j" . "jupyter") ; Define 'j' under 'o' as prefix for jupyter-related commands
+      "r" #'jupyter-repl-associate-buffer    ;; (r)epl associate
+      "s" #'jupyter-server-list-kernels      ;; (s)erver list kernels
+      "x" #'jupyter-org-execute-block-and-next ;; e(x)ecute and advance
+      "d" #'+my/dap-jupyter-debug-block      ;; (d)ebug block
+      "b" #'dap-breakpoint-toggle)            ;; (b)reakpoint toggle
+#+end_src
 * Docker
 #+begin_src emacs-lisp
 (setq docker-command "podman")
