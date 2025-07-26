@@ -53,8 +53,8 @@
        (smooth-scroll
         +interpolate)     ; So smooth you won't believe it's not butter
        ;;tabs
-       (treemacs
-        +lsp)
+       treemacs
+       
        ;;unicode           ; extended unicode support for various languages
        (vc-gutter +pretty) ; vcs diff in the fringe
        ;;vi-tilde-fringe   ; fringe tildes to mark beyond EOB
@@ -97,7 +97,7 @@
 
        :checkers
        (syntax
-        +childframe
+        +flymake
         +icons)
        ;;grammar           ; tasing grammar mistake every you make
 
@@ -105,8 +105,7 @@
        ansible
        biblio              ; Writes a PhD for you (citation needed)
        ;;collab            ; buffers with friends
-       (debugger
-        +lsp)
+       debugger
        direnv
        docker
        ;;editorconfig      ; let someone else argue about tabs vs spaces
@@ -115,7 +114,7 @@
        lookup              ; navigate your code and its documentation
        ;;llm               ; when I said you needed friends, I didn't mean...
        (lsp
-        +peek)
+        +eglot)
        (magit
         +forge)
        ;;make              ; run make tasks from Emacs
@@ -123,7 +122,7 @@
        pdf                 ; pdf enhancements
        ;;terraform         ; infrastructure as code
        tmux                ; an API for interacting with tmux
-       tree-sitter         ; syntax and parsing, sitting in a tree...
+       ;;tree-sitter         ; syntax and parsing, sitting in a tree..
        ;;upload            ; map local to remote projects via ssh/ftp
 
        :os
@@ -134,8 +133,7 @@
        ;;agda              ; types of types of types of types...
        ;;beancount         ; mind the GAAP
        (cc 
-        +lsp
-        +tree-sitter)
+        +lsp)
        ;;clojure           ; java with a lisp
        ;;common-lisp       ; if you've seen one lisp, you've seen them all
        ;;coq               ; proofs-as-programs
@@ -175,7 +173,6 @@
        markdown
        ;;nim               ; python + lisp at the speed of c
        (nix
-        +tree-sitter
         +lsp)
        ;;ocaml             ; an objective camel
        (org
@@ -192,8 +189,8 @@
        ;;purescript        ; javascript, but functional
        (python
         +lsp
-        +pyright
-        +tree-sitter)
+        +poetry
+        +pyright)
        ;;qt                ; the 'cutest' gui framework ever
        ;;racket            ; a DSL for DSLs
        ;;raku              ; the artist formerly known as perl6
@@ -205,8 +202,7 @@
        ;;(scheme +guile)   ; a fully conniving family of lisps
        (sh
         +fish
-        +lsp
-        +tree-sitter)
+        +lsp)
        ;;sml
        ;;solidity          ; do you need a blockchain? No.
        ;;swift             ; who asked for emoji variables?
